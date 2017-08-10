@@ -49,7 +49,7 @@ func TestParseSPCContainer(t *testing.T) {
 		spcMessage, err := ioutil.ReadAll(f)
 		assert.NoError(t, err)
 
-		spcContainer, err := ParseSPCContainer(spcMessage,&FileReader)
+		spcContainer, err := ParseSPCContainer(spcMessage,FileReader)
 		assert.NoError(t, err)
 
 		assert.Equal(t, test.AesKeyIV, spcContainer.AesKeyIV)

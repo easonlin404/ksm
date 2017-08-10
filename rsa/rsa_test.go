@@ -6,48 +6,47 @@ import (
 )
 
 var privateKey = []byte(`-----BEGIN RSA PRIVATE KEY-----
-MIIEowIBAAKCAQEAwOJK1RJBUwRu/5aCyktTaietXFMOAAkElhSq1M6BocVWs7yD
-y592CX30Bl0Ul4faWM9EZSlhak8Ay1CdMNis+lBZanKmAO2bPmSIIYBDQE2BzLIo
-MoJWi/Cd5PevioKSRPytqVB/S4+xz1IOD8Y407SZM3LfZ5XMfqC+VHpcnAycQ8iT
-FK0s3yjImathFNF3U7fiEzU4G7PJRn8e9ntubDd1pXYABqrVF/REcd/3Rs/qrlhG
-v3b7tAXZb2lkSLdCq3Md+BMksxUCoH3rZijSphbZSCdIrzofg+IG0y5WtdsBz6uw
-Ol2QX/EUoEdO+xhLgaOFykUoWz037ZzkLEhKkQIDAQABAoIBAB+1lAPPSnnxYqYW
-Ak5rb70l5LQm20haMyzRHPx7Loh/vq8xsKELCAardDCPoNEAfn7XJDFVSjSF5GWI
-TS84j8de6jQ7wNqqNTleoZqQUX4Cv/H83+rdzoiW9/4qUet9Z7p7p7kMCMFNUDf7
-D2C8f58eM4lnux52W/X9SwzsSMlGaGHcAKPz4vXUFWyt3naVtANhdkHjgKxA0Ev4
-W7yRgpbOKruPKzBNTRXAqq+yHZj/pONtXl8do+plwhHU8CW0BPyvkU4DH52lxWza
-mM71ow8UJC30FXF/NZ+wthFnRZO3/dhaeuNYgX7yAs3DhNn7Q8nzU4ujd8ug2OGf
-iJ9C8YECgYEA32KthV7VTQRq3VuXMoVrYjjGf4+z6BVNpTsJAa4kF+vtTXTLgb4i
-jpUrq6zPWZkQ/nR7+CuEQRUKbky4SSHTnrQ4yIWZTCPDAveXbLwzvNA1xD4w4nOc
-JgG/WYiDtAf05TwC8p/BslX20Ox8ZAXUq6pkAeb1t8M2s7uDpZNtBMkCgYEA3QuU
-vrrqYuD9bQGl20qJI6svH875uDLYFcUEu/vA/7gDycVRChrmVe4wU5HFErLNFkHi
-uifiHo75mgBzwYKyiLgO5ik8E5BJCgEyA9SfEgRHjozIpnHfGbTtpfh4MQf2hFsy
-DJbeeRFzQs4EW2gS964FK53zsEtnr7bphtvfY4kCgYEAgf6wr95iDnG1pp94O2Q8
-+2nCydTcgwBysObL9Phb9LfM3rhK/XOiNItGYJ8uAxv6MbmjsuXQDvepnEp1K8nN
-lpuWN8rXTOG6yG1A53wWN5iK0WrHk+BnTA7URcwVqJzAvO3RYVPqqlcwTKByOtrR
-yhxcGmdHMusdWDaVA7PpS1ECgYATCGs/XQLPjsXje+/XCPzz+Epvd7fi12XpwfQd
-Z5j/q82PsxC+SQCqR38bwwJwELs9/mBSXRrIPNFbJEzTTbinswl9YfGNUbAoT2AK
-GmWz/HBY4uBoDIgEQ6Lu1o0q05+zV9LgaKExVYJSL0EKydRQRUimr8wK0wNTivFi
-rk322QKBgHD3aEN39rlUesTPX8OAbPD77PcKxoATwpPVrlH8YV7TxRQjs5yxLrxL
-S21UkPRxuDS5CMXZ+7gA3HqEQTXanNKJuQlsCIWsvipLn03DK40nYj54OjEKYo/F
-UgBgrck6Zhxbps5leuf9dhiBrFUPjC/gcfyHd/PYxoypHuQ3JUsJ
------END RSA PRIVATE KEY-----
-`)
-var publicKey = []byte(`-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwOJK1RJBUwRu/5aCyktT
-aietXFMOAAkElhSq1M6BocVWs7yDy592CX30Bl0Ul4faWM9EZSlhak8Ay1CdMNis
-+lBZanKmAO2bPmSIIYBDQE2BzLIoMoJWi/Cd5PevioKSRPytqVB/S4+xz1IOD8Y4
-07SZM3LfZ5XMfqC+VHpcnAycQ8iTFK0s3yjImathFNF3U7fiEzU4G7PJRn8e9ntu
-bDd1pXYABqrVF/REcd/3Rs/qrlhGv3b7tAXZb2lkSLdCq3Md+BMksxUCoH3rZijS
-phbZSCdIrzofg+IG0y5WtdsBz6uwOl2QX/EUoEdO+xhLgaOFykUoWz037ZzkLEhK
-kQIDAQAB
------END PUBLIC KEY-----
-`)
+MIICXAIBAAKBgQC0XgENuL2ujKrsVJDsq1SxNL43N6792teqp3Siihi+mn6ZDdfc
+XP3FsPQNltBQkiWIJGPosoRjwDuAS1ntEEqJyc9PBnXhDEtsJo/O4fDy3umMrvCH
+Wt4R/rJ3O4b9m8V+QCO9hE0kFpRJZMt7RywmFdram01uARkGb7xOC3zPrQIDAQAB
+AoGBAIO+vkpFjNd4jEi/pHQa2WvuuJogpENsnGdclYc8E8L1mk81m1ys1/iUvk9G
+v7Z6acu9uPR5oNYzzcJyR6cvZSFxtGIZnWNdDOAB71b+YqMvj3lr6MgUdMUgUfxZ
+EDXLEhIoVzyQWIt+f6hjSG/hzyw+Jglo4ogCWPsV3S6UG2WBAkEA5HPddGIUa34k
+2/EGQqyCAo4VYlCUdCFTp9+eFIUedequgsSIZhgblT+FSvMPYARuG/ywLoOivRy1
+dFl0dIB1sQJBAModyMskK0r312kro+URq8VxlwwY0fv2rF1aS0/clQUw5OH/OxEn
+Dgz3l3PNTXDCcQDh9wyEZV0SgIp7SYCDrL0CQEo8HEolVN1ZMEEIITCpPdX2tZws
+8xCJg9WZJJUmbK+EgxCbLHeAffYRng6szOI2jlEp21ZCEC/DlHMqXl09IQECQGSn
+EoC/oWOzKy4v0m3YL/+iwsL+dUwSGuJefhTmV7v/DmzRixvOpDum7WB5BDC8VERJ
+Q5uTL1t7RFIydXcvm80CQH/E17mWT66PPeqloAfSH/5tJyak2gagkuFnMh779JRF
+rl5YIIiAh+q5DkcjWw6eni5O4+UuwXRp29vZaxmDlIE=
+-----END RSA PRIVATE KEY-----`)
+
+var cert = []byte(`-----BEGIN CERTIFICATE-----
+MIIDfTCCAmWgAwIBAgIIboBT3GOPJ50wDQYJKoZIhvcNAQEFBQAwfTELMAkGA1UE
+BhMCVVMxEzARBgNVBAoMCkFwcGxlIEluYy4xJjAkBgNVBAsMHUFwcGxlIENlcnRp
+ZmljYXRpb24gQXV0aG9yaXR5MTEwLwYDVQQDDChEUk0gVGVjaG5vbG9naWVzIENl
+cnRpZmljYXRpb24gQXV0aG9yaXR5MB4XDTExMTAxODAxNTcyMloXDTEzMTAxNzAx
+NTcyMlowRjERMA8GA1UEAwwIUGFydG5lcjIxETAPBgNVBAsMCFBhcnRuZXIyMREw
+DwYDVQQKDAhQYXJ0bmVyMjELMAkGA1UEBhMCVVMwgZ8wDQYJKoZIhvcNAQEBBQAD
+gY0AMIGJAoGBALReAQ24va6MquxUkOyrVLE0vjc3rv3a16qndKKKGL6afpkN19xc
+/cWw9A2W0FCSJYgkY+iyhGPAO4BLWe0QSonJz08GdeEMS2wmj87h8PLe6Yyu8Ida
+3hH+snc7hv2bxX5AI72ETSQWlElky3tHLCYV2tqbTW4BGQZvvE4LfM+tAgMBAAGj
+gbswgbgwJwYLKoZIhvdjZAYNAQMEGAGAgEeXuoURG4c6qSNQztlZmgq9dM3kTzAv
+BgsqhkiG92NkBg0BBAQgAaWxaRPd6O3itrSL3iqhd3fcpUMMhDQTIebXMN1IfmQw
+HQYDVR0OBBYEFDdUHOfoNQC1nqz9IzDvC/WJR1ssMAwGA1UdEwEB/wQCMAAwHwYD
+VR0jBBgwFoAU6rShbWWjpF5JZST6HCRnrVoa0DMwDgYDVR0PAQH/BAQDAgUgMA0G
+CSqGSIb3DQEBBQUAA4IBAQB4gFunl0sKeqGza5fdDd9Dj0O+rutFPqIFFLY60Qgl
+jQdkzaHegMBqoON3I2KWRxgOeaewArmlgZjK8LoTv++HALB1Thf7N9AulyWVCg7J
+i/hFKhTNpbNWBXSkKYn1QpcnohAnjLsrNED7R0b4A7z1yBhUjU96uRsKU+Dd6St9
+XMlvvK49iSWNadfz7IictPrOjvHj4hRzepE43U5unevsth2FXu553LMCZw7gy4h9
+IMYU4NZSWhf5z+wYpjtzYxdoqynjvihqFdGqYDC2drzpLLhaCXZhZUq2D1mXoQaY
+6URsYkp6FRwIAx++KnIwE7Q3kK6s+5sRpKK4zZ0y0O9Z
+-----END CERTIFICATE-----`)
 
 func TestEncryptAndDecrypt(t *testing.T) {
 	origData := []byte("plainText")
 
-	en, err := Encrypt(publicKey, origData)
+	en, err := EncryptByCert(cert, origData)
 	assert.NoError(t, err)
 
 	de, err := Decrypt(privateKey, en)
@@ -61,7 +60,7 @@ func TestEncryptAndDecryptFromFile(t *testing.T) {
 
 
 	pemReader:=FileReader{FileName:"../testdata/Development Credentials/dev_private_key.pem"}
-	derReader:=FileReader{FileName:"../testdata/Development Credentials/dev_certificate.der"}
+	derReader:=FileReader{FileName:"../testdata/Development Credentials/certificate.pem"}
 
 	der,err:=derReader.ReadPem()
 	assert.NoError(t, err)
@@ -69,8 +68,8 @@ func TestEncryptAndDecryptFromFile(t *testing.T) {
 	pem,err:=pemReader.ReadPem()
 	assert.NoError(t, err)
 
-	en, err := Encrypt(der, origData)
-	assert.NoError(t, err)
+	en, err := EncryptByCert(der, origData)
+	assert.NoError(t, err) //TODO: public key error
 
 	de, err := Decrypt(pem, en)
 	assert.NoError(t, err)
