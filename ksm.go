@@ -42,6 +42,8 @@ func ParseSPCV1(playback []byte, pem []byte) (*SPCContainer, error) {
 	}
 	fmt.Println(spcpayload)
 
+	parseTLLVs(spcpayload)
+
 	//TODO:
 	printDebugSPC(spcContainer)
 
@@ -60,10 +62,33 @@ func parseSPCContainer(playback []byte) *SPCContainer {
 	return spcContainer
 }
 
-func parseTLLVs(spcpayload []byte)map[string]TLLVBlock {
+func parseTLLVs(spcpayload []byte) map[string]TLLVBlock {
 	var m map[string]TLLVBlock
-
 	m = make(map[string]TLLVBlock)
+
+	for currentOffset := 0; currentOffset < len(spcpayload); {
+		fmt.Sprintf("currentOffset:%+v\n", currentOffset)
+
+		version := spcpayload[currentOffset:8]
+
+		switch binary.BigEndian.Uint64(version) {
+
+		case Tag_SessionKey_R1:
+			fmt.Println("found Tag_SessionKey_R1")
+			fmt.Println(hex.EncodeToString(version))
+		case Tag_SessionKey_R1_integrity:
+			fmt.Println("found Tag_SessionKey_R1_integrity")
+			fmt.Println(hex.EncodeToString(version))
+		case Tag_AntiReplaySeed:
+			fmt.Println("found Tag_AntiReplaySeed")
+			fmt.Println(hex.EncodeToString(version))
+
+		default:
+
+		}
+
+		currentOffset = currentOffset + 8 //TODO: using TLLV Block length
+	}
 
 	return m
 }

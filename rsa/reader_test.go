@@ -1,17 +1,17 @@
 package rsa
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestFileReader_Read(t *testing.T) {
 
-	keyReader:=FileReader{FileName:"../testdata/Development Credentials/dev_private_key.pem"}
+	keyReader := FileReader{FileName: "../testdata/Development Credentials/dev_private_key.pem"}
 
-	b,err:=keyReader.ReadPem()
+	b, err := keyReader.ReadPem()
 	assert.NoError(t, err)
-	assert.Equal(t,dev_private_key,b)
+	assert.Equal(t, dev_private_key, b)
 
 }
 

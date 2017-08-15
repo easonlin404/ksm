@@ -13,28 +13,27 @@ var (
 	_ Reader = TextReader{}
 )
 
-
 type FileReader struct {
 	FileName string
 }
 
-func(f FileReader) ReadPem() ([]byte, error) {
+func (f FileReader) ReadPem() ([]byte, error) {
 	var pem []byte
-	pem,err:=ioutil.ReadFile(f.FileName)
-	if err!=nil{
-		return pem,err
+	pem, err := ioutil.ReadFile(f.FileName)
+	if err != nil {
+		return pem, err
 	}
-	return pem,err
+	return pem, err
 }
 
 type TextReader struct {
 	Pem []byte
 }
 
-func(t TextReader) ReadPem() ([]byte, error) {
+func (t TextReader) ReadPem() ([]byte, error) {
 	if len(t.Pem) > 0 {
-		return t.Pem,nil
+		return t.Pem, nil
 	}
-	return nil,nil
+	return nil, nil
 
 }
