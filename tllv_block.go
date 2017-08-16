@@ -1,11 +1,16 @@
 package ksm
 
 type TLLVBlock struct {
-	Tag         []byte
-	BlockLength []byte
-	ValueLength []byte
+	Tag         uint64
+	BlockLength uint32
+	ValueLength uint32
 	Value       []byte
-	Padding     []byte
+}
+
+type SKR1TLLVBlock struct {
+	TLLVBlock
+	IV      []byte
+	Payload []byte
 }
 
 const (

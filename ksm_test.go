@@ -2,7 +2,6 @@ package ksm
 
 import (
 	"encoding/hex"
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
@@ -27,11 +26,14 @@ var spcContainerTests = []spcTest{
 func TestGenCKC(t *testing.T) {
 	for _, test := range spcContainerTests {
 		f, err := os.Open(test.filePath)
-		assert.NoError(t, err)
 		defer f.Close()
+		assert.NoError(t, err)
 
-		//spcMessage, err := ioutil.ReadAll(f)
-		//assert.NoError(t, err)
+		spcMessage, err := ioutil.ReadAll(f)
+		assert.NoError(t, err)
+
+		err2 := GenCKC(spcMessage)
+		assert.NoError(t, err2)
 
 	}
 }
@@ -55,20 +57,4 @@ func TestParseSPCV1(t *testing.T) {
 		assert.Equal(t, test.spec, hex.EncodeToString(spcContainer.EncryptedAesKey))
 
 	}
-}
-
-func TestGenCKC2(t *testing.T) {
-
-	b := []byte("catchplay")
-
-	fmt.Println(hex.EncodeToString(b))
-
-	db, err := hex.DecodeString("Y2F0Y2hwbGF5")
-
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println(db)
-	fmt.Println(string(db))
 }
