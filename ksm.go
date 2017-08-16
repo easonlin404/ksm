@@ -20,7 +20,6 @@ type SPCContainer struct {
 	SPCPlayloadLength uint32
 }
 
-
 // This function will compute the content key context returned to client by the SKDServer library.
 //       incoming server playback context (SPC message)
 func GenCKC(playback []byte) error {
@@ -66,13 +65,16 @@ func parseTLLVs(spcpayload []byte) map[string]TLLVBlock {
 	var m map[string]TLLVBlock
 	m = make(map[string]TLLVBlock)
 
-	for currentOffset := 0; currentOffset < len(spcpayload); {
-		fmt.Sprintf("currentOffset:%+v\n", currentOffset)
+	fmt.Printf("spcpayload length:%v\n", len(spcpayload))
 
-		version := spcpayload[currentOffset:8]
+	for currentOffset := 0; currentOffset < len(spcpayload); {
+
+		version := spcpayload[currentOffset : currentOffset+Field_Tag_Length]
+		currentOffset += Field_Tag_Length
+
+		var notFound bool
 
 		switch binary.BigEndian.Uint64(version) {
-
 		case Tag_SessionKey_R1:
 			fmt.Println("found Tag_SessionKey_R1")
 			fmt.Println(hex.EncodeToString(version))
@@ -82,15 +84,63 @@ func parseTLLVs(spcpayload []byte) map[string]TLLVBlock {
 		case Tag_AntiReplaySeed:
 			fmt.Println("found Tag_AntiReplaySeed")
 			fmt.Println(hex.EncodeToString(version))
-
+		case Tag_R2:
+			fmt.Println("found Tag_R2")
+			fmt.Println(hex.EncodeToString(version))
+		case Tag_ReturnRequest:
+			fmt.Println("found Tag_ReturnRequest")
+			fmt.Println(hex.EncodeToString(version))
+		case Tag_AssetID:
+			fmt.Println("found Tag_AssetID")
+			fmt.Println(hex.EncodeToString(version))
+		case Tag_TransactionID:
+			fmt.Println("found Tag_TransactionID")
+			fmt.Println(hex.EncodeToString(version))
+		case Tag_ProtocolVersionsSupported:
+			fmt.Println("found Tag_ProtocolVersionsSupported")
+			fmt.Println(hex.EncodeToString(version))
+		case Tag_ProtocolVersionUsed:
+			fmt.Println("found Tag_ProtocolVersionUsed")
+			fmt.Println(hex.EncodeToString(version))
+		case Tag_treamingIndicator:
+			fmt.Println("found Tag_treamingIndicator")
+			fmt.Println(hex.EncodeToString(version))
+		case Tag_kSKDServerClientReferenceTime:
+			fmt.Println("found Tag_kSKDServerClientReferenceTime")
+			fmt.Println(hex.EncodeToString(version))
 		default:
-
+			notFound = true
+			//fmt.Println("Undefined TLLVs")
 		}
 
-		currentOffset = currentOffset + 8 //TODO: using TLLV Block length
+		blockLength := binary.BigEndian.Uint32(spcpayload[currentOffset : currentOffset+Field_Block_Length])
+		currentOffset += Field_Block_Length
+
+		valueLength := binary.BigEndian.Uint32(spcpayload[currentOffset : currentOffset+Field_Value_Length])
+		currentOffset += Field_Value_Length
+
+		//paddingSize := blockLength - valueLength
+
+		value := spcpayload[currentOffset : currentOffset+int(valueLength)]
+
+		if notFound == false {
+			fmt.Printf("blockLength:0x%x\n", blockLength)
+			fmt.Printf("valueLength:0x%x\n", valueLength)
+			//fmt.Printf("paddingSize:0x%x\n", paddingSize)
+
+			fmt.Printf("Tag value:%s\n", hex.EncodeToString(value))
+		}
+
+		//TODO: paring
+		currentOffset = currentOffset + int(blockLength)
 	}
 
 	return m
+}
+
+func parseTTLV() TLLVBlock {
+	//TODO:
+	return TLLVBlock{}
 }
 
 func printDebugSPC(spcContainer *SPCContainer) {
