@@ -33,8 +33,6 @@ const (
 	Tag_treamingIndicator             = 0xabb0256a31843974
 	Tag_kSKDServerClientReferenceTime = 0xeb8efdf2b25ab3a0 //Media playback state
 
-	Tag_CK = 0x58b38165af0e3d5a
-	Tag_R1 = 0xea74c4645d5efee9
 	//kSKDServerReturnTags,
 	kSKDServerKeyDurationTag = 0x47acf6a418cd091a
 )
@@ -43,4 +41,12 @@ const (
 	Field_Tag_Length   = 8
 	Field_Block_Length = 4
 	Field_Value_Length = 4
+)
+
+
+const(
+	Tag_Encrypted_CK = 0x58b38165af0e3d5a
+	Tag_R1 = 0xea74c4645d5efee9
+	Tag_Content_Key_Duration = 0x47acf6a418cd091a
+	Tag_HDCP_Enforcement = 0x2e52f1530d8ddb4a
 )
