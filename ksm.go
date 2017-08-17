@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"reflect"
 
 	"github.com/easonlin404/ksm/aes"
 	"github.com/easonlin404/ksm/d"
@@ -41,8 +42,8 @@ func GenCKC(playback []byte) error {
 	appleD := d.AppleD{} //TODO: pass from parameter
 	ask := []byte{}      //TODO:
 
-	r2Block := ttlvs[Tag_R2]
-	dask, err := appleD.Compute(r2Block.Value, ask) //TODO: pass r2Block instead of r2.Block.value
+	r2 := ttlvs[Tag_R2]
+	dask, err := appleD.Compute(r2.Value, ask) //TODO: pass r2Block instead of r2.Block.value
 	if err != nil {
 		return err
 	}
@@ -52,17 +53,17 @@ func GenCKC(playback []byte) error {
 		return err
 	}
 
-	fmt.Println("DASk Value:")
-	fmt.Println(hex.EncodeToString(dask))
+	//Check the integrity of this SPC message
+	skr1int := ttlvs[Tag_SessionKey_R1_integrity]
 
-	fmt.Println("SPC SK Value:")
-	fmt.Println(hex.EncodeToString(DecryptedSKR1Payload.SK))
+	if !reflect.DeepEqual(skr1int.Value, DecryptedSKR1Payload.IntegrityBytes) {
+		return errors.New(" Check the integrity of the SPC failed.")
+	}
 
-	fmt.Println("SPC [SK..R1] IV Value:")
-	fmt.Println(hex.EncodeToString(skr1.IV))
-
-	fmt.Println("SPC R1 Value:")
-	fmt.Println(hex.EncodeToString(DecryptedSKR1Payload.R1))
+	fmt.Printf("DASk Value:\n\t%s\n\n", hex.EncodeToString(dask))
+	fmt.Printf("SPC SK Value:\n\t%s\n\n", hex.EncodeToString(DecryptedSKR1Payload.SK))
+	fmt.Printf("SPC [SK..R1] IV Value:\n\t%s\n\n", hex.EncodeToString(skr1.IV))
+	//fmt.Printf("SPC R1 Value:\n%s\n\n",hex.EncodeToString(DecryptedSKR1Payload.R1))
 
 	return nil
 }
@@ -122,38 +123,27 @@ func parseTLLVs(spcpayload []byte) map[uint64]TLLVBlock {
 		var skip bool
 		switch tag {
 		case Tag_SessionKey_R1:
-			fmt.Println("Tag_SessionKey_R1")
-			fmt.Printf("%x\n", tag)
+			fmt.Printf("Tag_SessionKey_R1 -- %x\n", tag)
 		case Tag_SessionKey_R1_integrity:
-			fmt.Println("Tag_SessionKey_R1_integrity")
-			fmt.Printf("%x\n", tag)
+			fmt.Printf("Tag_SessionKey_R1_integrity -- %x\n", tag)
 		case Tag_AntiReplaySeed:
-			fmt.Println("Tag_AntiReplaySeed")
-			fmt.Printf("%x\n", tag)
+			fmt.Printf("Tag_AntiReplaySeed -- %x\n", tag)
 		case Tag_R2:
-			fmt.Println("Tag_R2")
-			fmt.Printf("%x\n", tag)
+			fmt.Printf("Tag_R2 -- %x\n", tag)
 		case Tag_ReturnRequest:
-			fmt.Println("Tag_ReturnRequest")
-			fmt.Printf("%x\n", tag)
+			fmt.Printf("Tag_ReturnRequest -- %x\n", tag)
 		case Tag_AssetID:
-			fmt.Println("Tag_AssetID")
-			fmt.Printf("%x\n", tag)
+			fmt.Printf("Tag_AssetID -- %x\n", tag)
 		case Tag_TransactionID:
-			fmt.Println("Tag_TransactionID")
-			fmt.Printf("%x\n", tag)
+			fmt.Printf("Tag_TransactionID -- %x\n", tag)
 		case Tag_ProtocolVersionsSupported:
-			fmt.Println("Tag_ProtocolVersionsSupported")
-			fmt.Printf("%x\n", tag)
+			fmt.Printf("Tag_ProtocolVersionsSupported -- %x\n", tag)
 		case Tag_ProtocolVersionUsed:
-			fmt.Println("Tag_ProtocolVersionUsed")
-			fmt.Printf("%x\n", tag)
+			fmt.Printf("Tag_ProtocolVersionUsed -- %x\n", tag)
 		case Tag_treamingIndicator:
-			fmt.Println("Tag_treamingIndicator")
-			fmt.Printf("%x\n", tag)
+			fmt.Printf("Tag_treamingIndicator -- %x\n", tag)
 		case Tag_kSKDServerClientReferenceTime:
-			fmt.Println("Tag_kSKDServerClientReferenceTime")
-			fmt.Printf("%x\n", tag)
+			fmt.Printf("Tag_kSKDServerClientReferenceTime -- %x\n", tag)
 		default:
 			skip = true
 		}
