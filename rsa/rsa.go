@@ -19,6 +19,8 @@ func Encrypt(publicKey, origData []byte) ([]byte, error) {
 	if block == nil {
 		return nil, errors.New("public key error")
 	}
+
+
 	pubInterface, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
 		return nil, err
@@ -43,8 +45,6 @@ func EncryptByCert(pemCertificate, origData []byte) ([]byte, error) {
 	}
 
 	pub := cert.PublicKey.(*rsa.PublicKey)
-	//fmt.Println(pub.N)
-	//fmt.Println(pub.E)
 
 	return rsa.EncryptOAEP(sha256.New(), rand.Reader, pub, origData, nil)
 }
