@@ -13,6 +13,13 @@ type SKR1TLLVBlock struct {
 	Payload []byte
 }
 
+type DecryptedSKR1Payload struct {
+	SK             []byte //Session key
+	HU             []byte
+	R1             []byte
+	IntegrityBytes []byte
+}
+
 const (
 	Tag_SessionKey_R1                 = 0x3d1a10b8bffac2ec
 	Tag_SessionKey_R1_integrity       = 0xb349d4809e910687

@@ -14,10 +14,10 @@ import (
 type SPCContainer struct {
 	Version           uint32
 	Reserved          []byte
-	AesKeyIV          []byte //16
-	EncryptedAesKey   []byte //128
-	CertificateHash   []byte //20
-	SPCPlayload       []byte //TODO: struct
+	AesKeyIV          []byte
+	EncryptedAesKey   []byte
+	CertificateHash   []byte
+	SPCPlayload       []byte
 	SPCPlayloadLength uint32
 
 	TTLVS map[uint64]TLLVBlock
@@ -33,56 +33,64 @@ func GenCKC(playback []byte) error {
 	}
 
 	ttlvs := spcv1.TTLVS
-	skr1, err := ParseSKR1(ttlvs[Tag_SessionKey_R1])
+	skr1, err := parseSKR1(ttlvs[Tag_SessionKey_R1])
 	if err != nil {
 		return err
 	}
 
-	appleD := d.AppleD{}
-	ask := []byte{} //TODO:
+	appleD := d.AppleD{} //TODO: pass from parameter
+	ask := []byte{}      //TODO:
 
 	r2Block := ttlvs[Tag_R2]
-	dask, err := appleD.Compute(r2Block.Value, ask)
-	if err != nil {
-		return err
-	}
-	fmt.Println(dask)
-
-	b, err := decryptSKR1(*skr1, dask)
+	dask, err := appleD.Compute(r2Block.Value, ask) //TODO: pass r2Block instead of r2.Block.value
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(b)
-	fmt.Println(len(b))
+	DecryptedSKR1Payload, err := decryptSKR1Payload(*skr1, dask)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("DASk Value:")
+	fmt.Println(hex.EncodeToString(dask))
+
+	fmt.Println("SPC SK Value:")
+	fmt.Println(hex.EncodeToString(DecryptedSKR1Payload.SK))
+
+	fmt.Println("SPC [SK..R1] IV Value:")
+	fmt.Println(hex.EncodeToString(skr1.IV))
+
+	fmt.Println("SPC R1 Value:")
+	fmt.Println(hex.EncodeToString(DecryptedSKR1Payload.R1))
 
 	return nil
 }
 
 func ParseSPCV1(playback []byte, pem []byte) (*SPCContainer, error) {
-	spcContainer := parseSPCContainer(playback)
+	spcContainer := ParseSPCContainer(playback)
 
 	spck, err := decryptSPCK(pem, spcContainer.EncryptedAesKey)
 	if err != nil {
 		return nil, err
 	}
 
-	spcPayload, err := decryptSPCpayload(spcContainer, spck)
+	spcPayloadRow, err := decryptSPCpayload(spcContainer, spck)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(spcPayload)
 
 	printDebugSPC(spcContainer)
 
-	spcContainer.TTLVS = parseTLLVs(spcPayload)
+	spcContainer.TTLVS = parseTLLVs(spcPayloadRow)
 
 	return spcContainer, nil
 }
 
-func parseSPCContainer(playback []byte) *SPCContainer {
+func ParseSPCContainer(playback []byte) *SPCContainer {
 	spcContainer := &SPCContainer{}
 	spcContainer.Version = binary.BigEndian.Uint32(playback[0:4])
+	spcContainer.Reserved = playback[4:8]
 	spcContainer.AesKeyIV = playback[8:24]
 	spcContainer.EncryptedAesKey = playback[24:152]
 	spcContainer.CertificateHash = playback[152:172]
@@ -95,8 +103,6 @@ func parseSPCContainer(playback []byte) *SPCContainer {
 func parseTLLVs(spcpayload []byte) map[uint64]TLLVBlock {
 	var m map[uint64]TLLVBlock
 	m = make(map[uint64]TLLVBlock)
-
-	fmt.Printf("spcpayload length:%v\n", len(spcpayload))
 
 	for currentOffset := 0; currentOffset < len(spcpayload); {
 
@@ -116,47 +122,45 @@ func parseTLLVs(spcpayload []byte) map[uint64]TLLVBlock {
 		var skip bool
 		switch tag {
 		case Tag_SessionKey_R1:
-			fmt.Println("found Tag_SessionKey_R1")
+			fmt.Println("Tag_SessionKey_R1")
 			fmt.Printf("%x\n", tag)
 		case Tag_SessionKey_R1_integrity:
-			fmt.Println("found Tag_SessionKey_R1_integrity")
+			fmt.Println("Tag_SessionKey_R1_integrity")
 			fmt.Printf("%x\n", tag)
 		case Tag_AntiReplaySeed:
-			fmt.Println("found Tag_AntiReplaySeed")
+			fmt.Println("Tag_AntiReplaySeed")
 			fmt.Printf("%x\n", tag)
 		case Tag_R2:
-			fmt.Println("found Tag_R2")
+			fmt.Println("Tag_R2")
 			fmt.Printf("%x\n", tag)
 		case Tag_ReturnRequest:
-			fmt.Println("found Tag_ReturnRequest")
+			fmt.Println("Tag_ReturnRequest")
 			fmt.Printf("%x\n", tag)
 		case Tag_AssetID:
-			fmt.Println("found Tag_AssetID")
+			fmt.Println("Tag_AssetID")
 			fmt.Printf("%x\n", tag)
 		case Tag_TransactionID:
-			fmt.Println("found Tag_TransactionID")
+			fmt.Println("Tag_TransactionID")
 			fmt.Printf("%x\n", tag)
 		case Tag_ProtocolVersionsSupported:
-			fmt.Println("found Tag_ProtocolVersionsSupported")
+			fmt.Println("Tag_ProtocolVersionsSupported")
 			fmt.Printf("%x\n", tag)
 		case Tag_ProtocolVersionUsed:
-			fmt.Println("found Tag_ProtocolVersionUsed")
+			fmt.Println("Tag_ProtocolVersionUsed")
 			fmt.Printf("%x\n", tag)
 		case Tag_treamingIndicator:
-			fmt.Println("found Tag_treamingIndicator")
+			fmt.Println("Tag_treamingIndicator")
 			fmt.Printf("%x\n", tag)
 		case Tag_kSKDServerClientReferenceTime:
-			fmt.Println("found Tag_kSKDServerClientReferenceTime")
+			fmt.Println("Tag_kSKDServerClientReferenceTime")
 			fmt.Printf("%x\n", tag)
 		default:
 			skip = true
-			//fmt.Println("Undefined TLLVs")
 		}
 
 		if skip == false {
-			fmt.Printf("blockLength:0x%x\n", blockLength)
-			fmt.Printf("valueLength:0x%x\n", valueLength)
-			//fmt.Printf("paddingSize:0x%x\n", paddingSize)
+			fmt.Printf("Tag size:0x%x\n", valueLength)
+			fmt.Printf("Tag length:0x%x\n", blockLength)
 			fmt.Printf("Tag value:%s\n\n", hex.EncodeToString(value))
 
 			tllvBlock := TLLVBlock{
@@ -177,16 +181,9 @@ func parseTLLVs(spcpayload []byte) map[uint64]TLLVBlock {
 	return m
 }
 
-func ParseSKR1(tllv TLLVBlock) (*SKR1TLLVBlock, error) {
-	iv := tllv.Value[16:32]
-	payload := tllv.Value[32:128]
-
-	if len(iv) != 16 {
-		return nil, errors.New("Wrong SKR1 IV size. Must be 16 bytes expected.")
-	}
-	if len(payload) != 96 {
-		return nil, errors.New("Wrong SKR1 payload size. Must be 96 bytes expected.")
-	}
+func parseSKR1(tllv TLLVBlock) (*SKR1TLLVBlock, error) {
+	iv := tllv.Value[0:16]
+	payload := tllv.Value[16:112]
 
 	return &SKR1TLLVBlock{
 		TLLVBlock: tllv,
@@ -195,26 +192,39 @@ func ParseSKR1(tllv TLLVBlock) (*SKR1TLLVBlock, error) {
 	}, nil
 }
 
-func decryptSKR1(skr1 SKR1TLLVBlock, dask []byte) ([]byte, error) {
+func decryptSKR1Payload(skr1 SKR1TLLVBlock, dask []byte) (*DecryptedSKR1Payload, error) {
 	if skr1.Tag != Tag_SessionKey_R1 {
-		return nil, errors.New("decryptSKR1 doesn't match Tag_SessionKey_R1 tag")
+		return nil, errors.New("decryptSKR1 doesn't match Tag_SessionKey_R1 tag.")
 	}
-	return aes.Decrypt(dask, skr1.IV, skr1.Payload)
+
+	decryptPayloadRow, err := aes.Decrypt(dask, skr1.IV, skr1.Payload)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(decryptPayloadRow) != 96 {
+		return nil, errors.New("Wrong decrypt payload size. Must be 96 bytes expected.")
+	}
+
+	d := &DecryptedSKR1Payload{
+		SK:             decryptPayloadRow[0:16],
+		HU:             decryptPayloadRow[16:36],
+		R1:             decryptPayloadRow[36:80],
+		IntegrityBytes: decryptPayloadRow[80:96],
+	}
+
+	return d, nil
 }
 
 func printDebugSPC(spcContainer *SPCContainer) {
 	fmt.Println("========================= Begin SPC Data ===============================")
-	fmt.Println("SPC container size -")
-	fmt.Println(spcContainer.SPCPlayloadLength)
+	fmt.Printf("SPC container size %+v\n", spcContainer.SPCPlayloadLength)
 
 	fmt.Println("SPC Encryption Key -")
 	fmt.Println(hex.EncodeToString(spcContainer.EncryptedAesKey))
 	fmt.Println("SPC Encryption IV -")
 	fmt.Println(hex.EncodeToString(spcContainer.AesKeyIV))
 	fmt.Println("================ SPC TLLV List ================")
-	//TODO:
-	fmt.Println("[SK ... R1] Integrity Tag --")
-	fmt.Println("=========================== End SPC Data =================================")
 
 }
 
