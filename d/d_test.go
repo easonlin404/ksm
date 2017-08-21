@@ -2,8 +2,9 @@ package d
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestAppleD_Compute(t *testing.T) {
