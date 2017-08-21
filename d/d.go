@@ -30,5 +30,4 @@ func (d AppleD) Compute(R2 []byte, ask []byte) ([]byte, error) {
 	}
 
 	return b, err
-
 }

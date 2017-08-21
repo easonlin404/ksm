@@ -88,7 +88,6 @@ func TestGenCKC(t *testing.T) {
 
 		err2 := GenCKC(spcMessage)
 		assert.NoError(t, err2)
-
 	}
 }
 

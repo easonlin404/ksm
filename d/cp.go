@@ -2,8 +2,10 @@ package d
 
 import (
 	"crypto/sha1"
+	"encoding/hex"
 	"errors"
 
+	"fmt"
 	"github.com/easonlin404/ksm/aes"
 )
 
@@ -14,11 +16,12 @@ type CP_D_Function struct {
 }
 
 func (d CP_D_Function) Compute(R2 []byte, ask []byte) ([]byte, error) {
-	hh,err := d.ComputeHashValue(R2)
+	hh, err := d.ComputeHashValue(R2)
 	if err != nil {
 		return nil, err
 	}
 
+	fmt.Printf("hh:%s\n", hex.EncodeToString(hh))
 	DASk, err := aes.EncryptWithECB(ask, hh)
 	if err != nil {
 		return nil, err
@@ -42,7 +45,7 @@ func (d CP_D_Function) Compute(R2 []byte, ask []byte) ([]byte, error) {
 
 }
 
-func (d CP_D_Function) ComputeHashValue(R2 []byte) ([]byte,error) {
+func (d CP_D_Function) ComputeHashValue(R2 []byte) ([]byte, error) {
 	var pad []byte
 	pad = make([]byte, 64, 64)
 
@@ -53,12 +56,10 @@ func (d CP_D_Function) ComputeHashValue(R2 []byte) ([]byte,error) {
 
 	var i uint32
 
-
-
-	R2_sz:=uint32(len(R2))
+	R2_sz := uint32(len(R2))
 
 	if len(R2) == 0 {
-		return nil,errors.New("R2 block doesn't exist.")
+		return nil, errors.New("R2 block doesn't exist.")
 	}
 
 	/* Padding until a multiple of 56B */
@@ -76,11 +77,10 @@ func (d CP_D_Function) ComputeHashValue(R2 []byte) ([]byte,error) {
 	//fmt.Printf("Create 14 32b values\n")
 	/* Create 14 32b values */
 
-
-	extPad:=copyPad(pad)
+	extPad := copyPad(pad)
 
 	for i = 0; i < 14; i++ {
-		m:= (extPad[4 * i] << 24) ^ (extPad[4 * i + 1] << 16) ^ (extPad[4 * i + 2] << 8) ^ (extPad[4 * i + 3])
+		m := (extPad[4*i] << 24) ^ (extPad[4*i+1] << 16) ^ (extPad[4*i+2] << 8) ^ (extPad[4*i+3])
 		//fmt.Printf("m: %x\n",m )
 		MBlock[i] = m
 	}
@@ -121,8 +121,6 @@ func (d CP_D_Function) ComputeHashValue(R2 []byte) ([]byte,error) {
 		pad[60+i] = uint8(MBlock[1] >> (8 * i))
 	}
 
-
-
 	//pad have to 64 size
 
 	//fmt.Println("---------------")
@@ -136,18 +134,18 @@ func (d CP_D_Function) ComputeHashValue(R2 []byte) ([]byte,error) {
 
 	hh := h.Sum(nil)
 
-	if len(hh)!=20{
+	if len(hh) != 20 {
 		panic("hash value must length 20  expected.")
 	}
 
-	return hh[0:16],nil
+	return hh[0:16], nil
 
 }
 
-func copyPad(pad []byte) []uint32{
+func copyPad(pad []byte) []uint32 {
 	extPad := make([]uint32, len(pad))
 
-	for i,p:=range pad{
+	for i, p := range pad {
 		extPad[i] = uint32(p)
 	}
 

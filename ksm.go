@@ -1,6 +1,7 @@
 package ksm
 
 import (
+	"crypto/rand"
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
@@ -35,8 +36,8 @@ type CKCContaniner struct {
 // This function will compute the content key context returned to client by the SKDServer library.
 //       incoming server playback context (SPC message)
 func GenCKC(playback []byte) error {
-	pem := []byte{} //TODO: server pk
-	rck:= RandomContentKey{} //TODO: pass frm parameter
+	pem := []byte{}           //TODO: server pk
+	rck := RandomContentKey{} //TODO: pass frm parameter
 
 	spcv1, err := ParseSPCV1(playback, pem)
 	if err != nil {
@@ -47,10 +48,12 @@ func GenCKC(playback []byte) error {
 	skr1 := parseSKR1(ttlvs[Tag_SessionKey_R1])
 
 	appleD := d.AppleD{} //TODO: pass from parameter
-	ask := []byte{}      //TODO:
+	//cp_d := d.CP_D_Function{}
+	ask := []byte{} //TODO:
 
 	r2 := ttlvs[Tag_R2]
 	dask, err := appleD.Compute(r2.Value, ask)
+
 	if err != nil {
 		return err
 	}
@@ -59,9 +62,11 @@ func GenCKC(playback []byte) error {
 	if err != nil {
 		return err
 	}
+	fmt.Printf("DASk Value:\n\t%s\n\n", hex.EncodeToString(dask))
 
 	//Check the integrity of this SPC message
-	if !reflect.DeepEqual(ttlvs[Tag_SessionKey_R1_integrity].Value, DecryptedSKR1Payload.IntegrityBytes) {
+	checkTheIntegrity := ttlvs[Tag_SessionKey_R1_integrity].Value
+	if !reflect.DeepEqual(checkTheIntegrity, DecryptedSKR1Payload.IntegrityBytes) {
 		return errors.New(" Check the integrity of the SPC failed.")
 	}
 
@@ -70,37 +75,121 @@ func GenCKC(playback []byte) error {
 	fmt.Printf("SPC [SK..R1] IV Value:\n\t%s\n\n", hex.EncodeToString(skr1.IV))
 	//fmt.Printf("SPC R1 Value:\n%s\n\n",hex.EncodeToString(DecryptedSKR1Payload.R1))
 
-	assetTTlv:=ttlvs[Tag_AssetID]
+	assetTTlv := ttlvs[Tag_AssetID]
 
 	// assetId its length can range from 2 to 200 bytes
 
-	if assetTTlv.ValueLength<2 ||  assetTTlv.ValueLength> 200 {
+	if assetTTlv.ValueLength < 2 || assetTTlv.ValueLength > 200 {
 		return errors.New("assetId its length must be range from 2 to 200 bytes")
 	}
 
-	enCk,err:= encryptCK(assetTTlv.Value,rck,DecryptedSKR1Payload.SK)
+	enCk, err := encryptCK(assetTTlv.Value, rck, DecryptedSKR1Payload.SK)
 	if err != nil {
 		return err
 	}
 
-	genCkcPayload(enCk)
+	returnTllvs := findReturnRequestBlocks(spcv1)
+
+	ckcDataIv := generateRandomIv()
+	ckcR1 := CkcR1{
+		R1: DecryptedSKR1Payload.R1,
+	}
+
+	genCkcPayload(ckcDataIv, enCk, ckcR1, returnTllvs)
 	return nil
 }
 
+func genCkcPayload(iv CkcDataIv, enCk []byte, ckcR1 CkcR1, returnTllvs []TLLVBlock) ([]byte, error) {
+	//TODO: The order of these blocks should be random.
+	var ckcPayload []byte
 
-//TODO:
-func genCkcPayload(enCk []byte) {
+	//Content Key TLLV
+	var contentKeyTllv []byte
+	contentKeyTllv = append(contentKeyTllv, []byte{0x58, 0xb3, 0x81, 0x65, 0xaf, 0x0e, 0x3d, 0x5a}...) //TODO: using Tag_Encrypted_CK?
+	contentKeyTllv = append(contentKeyTllv, []byte{0x00, 0x00, 0x00, 0x30}...)                         // Block length: Value(32) + Padding(16)
+	contentKeyTllv = append(contentKeyTllv, []byte{0x00, 0x00, 0x00, 0x20}...)                         // Value length: IV(16) + CK(16)
+	contentKeyTllv = append(contentKeyTllv, iv.IV...)
+	contentKeyTllv = append(contentKeyTllv, enCk...)
+
+	padding := make([]byte, 16)
+	rand.Read(padding)
+	contentKeyTllv = append(contentKeyTllv, padding...)
+
+	if len(ckcPayload) != 64 {
+		return nil, errors.New("ckcPayload len must be 64.")
+	}
+
+	ckcPayload = append(ckcPayload, contentKeyTllv...)
+
+	//R1Tllv
+	var r1Tllv []byte
+	r1Tllv = append(r1Tllv, []byte{0xea, 0x74, 0xc4, 0x64, 0x5d, 0x5e, 0xfe, 0xe9}...)
+
+	paddingSize := 32 - len(ckcR1.R1)%16
+	totalBlockLength := len(ckcR1.R1) + paddingSize
+
+	BlockLength := make([]byte, 4)
+	binary.BigEndian.PutUint32(BlockLength, uint32(totalBlockLength))
+	r1Tllv = append(r1Tllv, BlockLength...)
+
+	ValueLength := make([]byte, 4)
+	binary.BigEndian.PutUint32(ValueLength, uint32(len(ckcR1.R1)))
+	r1Tllv = append(r1Tllv, ValueLength...)
+	r1Tllv = append(r1Tllv, ckcR1.R1...) // 44-byte R1 value
+
+	padding2 := make([]byte, paddingSize)
+	rand.Read(padding2)
+	r1Tllv = append(r1Tllv, padding...)
+
+	ckcPayload = append(ckcPayload, r1Tllv...)
+
+	return ckcPayload, nil
 
 }
 
+func generateRandomIv() CkcDataIv {
+	key := make([]byte, 16)
+	rand.Read(key)
 
-func encryptCK(assetId []byte,ck ContentKey,sk []byte)([]byte,error) {
-	contentKey,iv,err:=ck.FetchContentKeyAndIV(assetId)
-	if err!=nil {
-		return nil,err
+	return CkcDataIv{
+		IV: key,
 	}
 
-	return aes.Encrypt(sk,iv,contentKey)
+}
+
+func encryptCkcPayload(ckcPayload []byte) CkcEncryptedPayload {
+	return CkcEncryptedPayload{}
+}
+
+func findReturnRequestBlocks(spcv1 *SPCContainer) []TLLVBlock {
+	tagReturnReq := spcv1.TTLVS[Tag_ReturnRequest]
+
+	var returnTllvs []TLLVBlock
+
+	for currentOffset := 0; currentOffset < len(tagReturnReq.Value); {
+
+		if ttlv, ok := spcv1.TTLVS[Tag_ReturnRequest]; ok {
+			returnTllvs = append(returnTllvs, ttlv)
+		} else {
+			panic("Can not found  tag")
+		}
+
+		currentOffset += Field_Tag_Length
+	}
+
+	return returnTllvs
+}
+
+func encryptCK(assetId []byte, ck ContentKey, sk []byte) ([]byte, error) {
+	contentKey, err := ck.FetchContentKey(assetId)
+	if err != nil {
+		return nil, err
+	}
+
+	var iv []byte
+	iv = make([]byte, len(contentKey), len(contentKey))
+
+	return aes.Encrypt(sk, iv, contentKey)
 }
 
 func ParseSPCV1(playback []byte, pem []byte) (*SPCContainer, error) {
@@ -134,6 +223,10 @@ func ParseSPCContainer(playback []byte) *SPCContainer {
 	spcContainer.SPCPlayload = playback[176 : 176+spcContainer.SPCPlayloadLength]
 
 	return spcContainer
+}
+
+func FillCKCContainer() {
+	//cocContainer:=
 }
 
 func parseTLLVs(spcpayload []byte) map[uint64]TLLVBlock {

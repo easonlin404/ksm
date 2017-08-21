@@ -20,6 +20,18 @@ type DecryptedSKR1Payload struct {
 	IntegrityBytes []byte
 }
 
+type CkcR1 struct {
+	R1 []byte
+}
+
+type CkcDataIv struct {
+	IV []byte
+}
+
+type CkcEncryptedPayload struct {
+	Payload []byte
+}
+
 const (
 	Tag_SessionKey_R1                 = 0x3d1a10b8bffac2ec
 	Tag_SessionKey_R1_integrity       = 0xb349d4809e910687
@@ -43,10 +55,9 @@ const (
 	Field_Value_Length = 4
 )
 
-
-const(
-	Tag_Encrypted_CK = 0x58b38165af0e3d5a
-	Tag_R1 = 0xea74c4645d5efee9
+const (
+	Tag_Encrypted_CK         = 0x58b38165af0e3d5a
+	Tag_R1                   = 0xea74c4645d5efee9
 	Tag_Content_Key_Duration = 0x47acf6a418cd091a
-	Tag_HDCP_Enforcement = 0x2e52f1530d8ddb4a
+	Tag_HDCP_Enforcement     = 0x2e52f1530d8ddb4a
 )

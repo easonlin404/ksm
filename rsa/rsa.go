@@ -20,7 +20,6 @@ func Encrypt(publicKey, origData []byte) ([]byte, error) {
 		return nil, errors.New("public key error")
 	}
 
-
 	pubInterface, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
 		return nil, err
