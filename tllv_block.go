@@ -1,10 +1,55 @@
 package ksm
 
+import (
+	"crypto/rand"
+	"encoding/binary"
+)
+
 type TLLVBlock struct {
 	Tag         uint64
 	BlockLength uint32
 	ValueLength uint32
 	Value       []byte
+}
+
+func NewTLLVBlock(tag uint64, value []byte) *TLLVBlock {
+	valueLen := uint32(len(value))
+	paddingSize := 32 - valueLen%16 // Extend to nearest 16 bytes + extra 16 bytes
+	blockLen := valueLen + paddingSize
+
+	return &TLLVBlock{
+		Tag:         tag,
+		BlockLength: blockLen,
+		ValueLength: valueLen,
+		Value:       value,
+	}
+}
+
+func (t *TLLVBlock) Serialize() []byte {
+	var out []byte
+
+	tagOut := make([]byte, 8)
+	blockLenOut := make([]byte, 4)
+	valueLenOut := make([]byte, 4)
+
+	valueLen := uint32(len(t.Value))
+	paddingLen := 32 - valueLen%16 // Extend to nearest 16 bytes + extra 16 bytes
+	blockLen := valueLen + paddingLen
+
+	paddingOut := make([]byte, paddingLen)
+	rand.Read(paddingOut)
+
+	binary.BigEndian.PutUint64(tagOut, t.Tag)
+	binary.BigEndian.PutUint32(blockLenOut, blockLen)
+	binary.BigEndian.PutUint32(valueLenOut, valueLen)
+
+	out = append(out, tagOut...)
+	out = append(out, blockLenOut...)
+	out = append(out, valueLenOut...)
+	out = append(out, t.Value...)
+	out = append(out, paddingOut...)
+
+	return out
 }
 
 type SKR1TLLVBlock struct {
