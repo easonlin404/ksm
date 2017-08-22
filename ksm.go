@@ -2,12 +2,12 @@ package ksm
 
 import (
 	"crypto/rand"
+	"crypto/sha1"
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
 	"fmt"
 	"reflect"
-	"crypto/sha1"
 
 	"github.com/easonlin404/ksm/aes"
 	"github.com/easonlin404/ksm/d"
@@ -42,24 +42,29 @@ func (c *CKCContaniner) Serialize() []byte {
 
 	payloadLenOut := make([]byte, 4)
 	payloadLen := uint32(len(c.CKCPayload))
+	fmt.Printf("payloadLen:%v\n", payloadLen)
 	binary.BigEndian.PutUint32(payloadLenOut, payloadLen)
 
 	out = append(out, versionOut...)
 	out = append(out, c.Reserved...)
 	out = append(out, c.CKCDataInitV...)
-	out = append(out, c.CKCPayload...)
 	out = append(out, payloadLenOut...)
+	out = append(out, c.CKCPayload...)
 	return out
 
 }
 
+type Ksm struct {
+	Pub string
+	Pri string
+	Rck ContentKey
+	Ask []byte
+	DFunction d.D
+}
 // This function will compute the content key context returned to client by the SKDServer library.
 //       incoming server playback context (SPC message)
-func GenCKC(playback []byte) ([]byte, error) {
-	pem := []byte{}           //TODO: server pk
-	rck := RandomContentKey{} //TODO: pass frm parameter
-
-	spcv1, err := ParseSPCV1(playback, pem)
+func (k*Ksm)GenCKC(playback []byte) ([]byte, error) {
+	spcv1, err := ParseSPCV1(playback, k.Pub, k.Pri)
 	if err != nil {
 		return nil, err
 	}
@@ -67,15 +72,8 @@ func GenCKC(playback []byte) ([]byte, error) {
 	ttlvs := spcv1.TTLVS
 	skr1 := parseSKR1(ttlvs[Tag_SessionKey_R1])
 
-	appleD := d.AppleD{} //TODO: pass from parameter
-	//cp_d := d.CP_D_Function{}
-	ask := []byte{} //TODO:
-	if err != nil {
-		return nil, err
-	}
-
 	r2 := ttlvs[Tag_R2]
-	dask, err := appleD.Compute(r2.Value, ask)
+	dask, err := k.DFunction.Compute(r2.Value, k.Ask)
 
 	if err != nil {
 		return nil, err
@@ -89,8 +87,8 @@ func GenCKC(playback []byte) ([]byte, error) {
 
 	//Check the integrity of this SPC message
 	checkTheIntegrity, ok := ttlvs[Tag_SessionKey_R1_integrity]
-	if ! ok {
-		return nil,errors.New("Tag_SessionKey_R1_integrity block doesn't existed.")
+	if !ok {
+		return nil, errors.New("Tag_SessionKey_R1_integrity block doesn't existed.")
 	}
 
 	fmt.Printf("checkTheIntegrity: %s\n", hex.EncodeToString(checkTheIntegrity.Value))
@@ -107,12 +105,13 @@ func GenCKC(playback []byte) ([]byte, error) {
 	assetTTlv := ttlvs[Tag_AssetID]
 
 	// assetId its length can range from 2 to 200 bytes
-
 	if assetTTlv.ValueLength < 2 || assetTTlv.ValueLength > 200 {
 		return nil, errors.New("assetId its length must be range from 2 to 200 bytes")
 	}
+	fmt.Printf("assetId: %v\n", hex.EncodeToString(assetTTlv.Value))
+	fmt.Printf("assetId(string): %v\n", string(assetTTlv.Value))
 
-	enCk, err := encryptCK(assetTTlv.Value, rck, DecryptedSKR1Payload.SK)
+	enCk, err := encryptCK(assetTTlv.Value, k.Rck, DecryptedSKR1Payload.SK)
 	if err != nil {
 		return nil, err
 	}
@@ -143,15 +142,27 @@ func GenCKC(playback []byte) ([]byte, error) {
 	return out, nil
 }
 
+func DebugCKC(ckcplayback []byte) {
+	ckcContaniner := &CKCContaniner{}
+	ckcContaniner.CKCVersion = binary.BigEndian.Uint32(ckcplayback[0:4])
+	ckcContaniner.Reserved = ckcplayback[4:8]
+	ckcContaniner.CKCDataInitV = ckcplayback[8:24]
+	ckcContaniner.CKCPayloadLength = binary.BigEndian.Uint32(ckcplayback[24:28])
+	ckcContaniner.CKCPayload = ckcplayback[28 : 28+ckcContaniner.CKCPayloadLength]
+}
+
 func genCkcPayload(iv CkcDataIv, enCk []byte, ckcR1 CkcR1, returnTllvs []TLLVBlock) ([]byte, error) {
 	//TODO: The order of these blocks should be random.
 	var ckcPayload []byte
 
 	//Content Key TLLV
 	var contentKeyTllv []byte
-	contentKeyTllv = append(contentKeyTllv, []byte{0x58, 0xb3, 0x81, 0x65, 0xaf, 0x0e, 0x3d, 0x5a}...) //TODO: using Tag_Encrypted_CK?
-	contentKeyTllv = append(contentKeyTllv, []byte{0x00, 0x00, 0x00, 0x30}...)                         // Block length: Value(32) + Padding(16)
-	contentKeyTllv = append(contentKeyTllv, []byte{0x00, 0x00, 0x00, 0x20}...)                         // Value length: IV(16) + CK(16)
+
+	tagOut := make([]byte, 8)
+	binary.BigEndian.PutUint64(tagOut, Tag_Encrypted_CK)
+	contentKeyTllv = append(contentKeyTllv, tagOut...)
+	contentKeyTllv = append(contentKeyTllv, []byte{0x00, 0x00, 0x00, 0x30}...) // Block length: Value(32) + Padding(16)
+	contentKeyTllv = append(contentKeyTllv, []byte{0x00, 0x00, 0x00, 0x20}...) // Value length: IV(16) + CK(16)
 	contentKeyTllv = append(contentKeyTllv, iv.IV...)
 	contentKeyTllv = append(contentKeyTllv, enCk...)
 
@@ -213,9 +224,13 @@ func findReturnRequestBlocks(spcv1 *SPCContainer) []TLLVBlock {
 	var returnTllvs []TLLVBlock
 
 	for currentOffset := 0; currentOffset < len(tagReturnReq.Value); {
-		if ttlv, ok := spcv1.TTLVS[Tag_ReturnRequest]; ok {
+		tag := binary.BigEndian.Uint64(tagReturnReq.Value[currentOffset : currentOffset+8])
+
+		if ttlv, ok := spcv1.TTLVS[tag]; ok {
+			fmt.Printf("tag: %x\n", tagReturnReq.Value[currentOffset:currentOffset+8])
 			returnTllvs = append(returnTllvs, ttlv)
 		} else {
+			fmt.Printf("no tag: %x\n", tagReturnReq.Value[currentOffset:currentOffset+8])
 			panic("Can not found  tag")
 		}
 
@@ -237,10 +252,10 @@ func encryptCK(assetId []byte, ck ContentKey, sk []byte) ([]byte, error) {
 	return aes.Encrypt(sk, iv, contentKey)
 }
 
-func ParseSPCV1(playback []byte, pem []byte) (*SPCContainer, error) {
+func ParseSPCV1(playback []byte, pub, pri string) (*SPCContainer, error) {
 	spcContainer := ParseSPCContainer(playback)
 
-	spck, err := decryptSPCK(pem, spcContainer.EncryptedAesKey)
+	spck, err := decryptSPCK(pub, pri, spcContainer.EncryptedAesKey)
 	if err != nil {
 		return nil, err
 	}
@@ -332,17 +347,16 @@ func parseTLLVs(spcpayload []byte) map[uint64]TLLVBlock {
 			fmt.Printf("Tag size:0x%x\n", valueLength)
 			fmt.Printf("Tag length:0x%x\n", blockLength)
 			fmt.Printf("Tag value:%s\n\n", hex.EncodeToString(value))
-
-			tllvBlock := TLLVBlock{
-				Tag:         tag,
-				BlockLength: blockLength,
-				ValueLength: valueLength,
-				Value:       value,
-			}
-
-			m[tag] = tllvBlock
-
 		}
+
+		tllvBlock := TLLVBlock{
+			Tag:         tag,
+			BlockLength: blockLength,
+			ValueLength: valueLength,
+			Value:       value,
+		}
+
+		m[tag] = tllvBlock
 
 		//TODO: paring ttlv
 		currentOffset = currentOffset + int(blockLength)
@@ -397,11 +411,11 @@ func printDebugSPC(spcContainer *SPCContainer) {
 
 // SPCK = RSA_OAEP d([SPCK])Prv where
 // [SPCK] represents the value of SPC message bytes 24-151. Prv represents the server's private key.
-func decryptSPCK(pkPem, enSpck []byte) ([]byte, error) {
+func decryptSPCK(pub, pri string, enSpck []byte) ([]byte, error) {
 	if len(enSpck) != 128 {
 		return nil, errors.New("Wrong [SPCK] length, must be 128")
 	}
-	return rsa.OAEPPDecrypt(pkPem, enSpck)
+	return rsa.OAEPPDecrypt(pub, pri, enSpck)
 }
 
 // SPC payload = AES_CBCIV d([SPC data])SPCK where

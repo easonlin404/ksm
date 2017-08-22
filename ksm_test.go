@@ -5,12 +5,13 @@ import (
 	"os"
 	"testing"
 
+	"github.com/easonlin404/ksm/d"
 	"github.com/stretchr/testify/assert"
 )
 
 type spcTest struct {
 	filePath      string
-	outFilePath string
+	outFilePath   string
 	playload_size int
 	iv            []byte
 	encrypted_key []byte
@@ -18,9 +19,47 @@ type spcTest struct {
 	ttls []TLLVBlock
 }
 
+var pub = `-----BEGIN CERTIFICATE-----
+MIIDfTCCAmWgAwIBAgIIboBT3GOPJ50wDQYJKoZIhvcNAQEFBQAwfTELMAkGA1UE
+BhMCVVMxEzARBgNVBAoMCkFwcGxlIEluYy4xJjAkBgNVBAsMHUFwcGxlIENlcnRp
+ZmljYXRpb24gQXV0aG9yaXR5MTEwLwYDVQQDDChEUk0gVGVjaG5vbG9naWVzIENl
+cnRpZmljYXRpb24gQXV0aG9yaXR5MB4XDTExMTAxODAxNTcyMloXDTEzMTAxNzAx
+NTcyMlowRjERMA8GA1UEAwwIUGFydG5lcjIxETAPBgNVBAsMCFBhcnRuZXIyMREw
+DwYDVQQKDAhQYXJ0bmVyMjELMAkGA1UEBhMCVVMwgZ8wDQYJKoZIhvcNAQEBBQAD
+gY0AMIGJAoGBALReAQ24va6MquxUkOyrVLE0vjc3rv3a16qndKKKGL6afpkN19xc
+/cWw9A2W0FCSJYgkY+iyhGPAO4BLWe0QSonJz08GdeEMS2wmj87h8PLe6Yyu8Ida
+3hH+snc7hv2bxX5AI72ETSQWlElky3tHLCYV2tqbTW4BGQZvvE4LfM+tAgMBAAGj
+gbswgbgwJwYLKoZIhvdjZAYNAQMEGAGAgEeXuoURG4c6qSNQztlZmgq9dM3kTzAv
+BgsqhkiG92NkBg0BBAQgAaWxaRPd6O3itrSL3iqhd3fcpUMMhDQTIebXMN1IfmQw
+HQYDVR0OBBYEFDdUHOfoNQC1nqz9IzDvC/WJR1ssMAwGA1UdEwEB/wQCMAAwHwYD
+VR0jBBgwFoAU6rShbWWjpF5JZST6HCRnrVoa0DMwDgYDVR0PAQH/BAQDAgUgMA0G
+CSqGSIb3DQEBBQUAA4IBAQB4gFunl0sKeqGza5fdDd9Dj0O+rutFPqIFFLY60Qgl
+jQdkzaHegMBqoON3I2KWRxgOeaewArmlgZjK8LoTv++HALB1Thf7N9AulyWVCg7J
+i/hFKhTNpbNWBXSkKYn1QpcnohAnjLsrNED7R0b4A7z1yBhUjU96uRsKU+Dd6St9
+XMlvvK49iSWNadfz7IictPrOjvHj4hRzepE43U5unevsth2FXu553LMCZw7gy4h9
+IMYU4NZSWhf5z+wYpjtzYxdoqynjvihqFdGqYDC2drzpLLhaCXZhZUq2D1mXoQaY
+6URsYkp6FRwIAx++KnIwE7Q3kK6s+5sRpKK4zZ0y0O9Z
+-----END CERTIFICATE-----`
+
+var pri = `-----BEGIN RSA PRIVATE KEY-----
+MIICXAIBAAKBgQC0XgENuL2ujKrsVJDsq1SxNL43N6792teqp3Siihi+mn6ZDdfc
+XP3FsPQNltBQkiWIJGPosoRjwDuAS1ntEEqJyc9PBnXhDEtsJo/O4fDy3umMrvCH
+Wt4R/rJ3O4b9m8V+QCO9hE0kFpRJZMt7RywmFdram01uARkGb7xOC3zPrQIDAQAB
+AoGBAIO+vkpFjNd4jEi/pHQa2WvuuJogpENsnGdclYc8E8L1mk81m1ys1/iUvk9G
+v7Z6acu9uPR5oNYzzcJyR6cvZSFxtGIZnWNdDOAB71b+YqMvj3lr6MgUdMUgUfxZ
+EDXLEhIoVzyQWIt+f6hjSG/hzyw+Jglo4ogCWPsV3S6UG2WBAkEA5HPddGIUa34k
+2/EGQqyCAo4VYlCUdCFTp9+eFIUedequgsSIZhgblT+FSvMPYARuG/ywLoOivRy1
+dFl0dIB1sQJBAModyMskK0r312kro+URq8VxlwwY0fv2rF1aS0/clQUw5OH/OxEn
+Dgz3l3PNTXDCcQDh9wyEZV0SgIp7SYCDrL0CQEo8HEolVN1ZMEEIITCpPdX2tZws
+8xCJg9WZJJUmbK+EgxCbLHeAffYRng6szOI2jlEp21ZCEC/DlHMqXl09IQECQGSn
+EoC/oWOzKy4v0m3YL/+iwsL+dUwSGuJefhTmV7v/DmzRixvOpDum7WB5BDC8VERJ
+Q5uTL1t7RFIydXcvm80CQH/E17mWT66PPeqloAfSH/5tJyak2gagkuFnMh779JRF
+rl5YIIiAh+q5DkcjWw6eni5O4+UuwXRp29vZaxmDlIE=
+-----END RSA PRIVATE KEY-----`
+
 var spcContainerTests = []spcTest{
 	{"testdata/spc1.bin",
-	"testdata/o-cpc1.bin",
+		"testdata/ckc1.bin",
 		2688,
 		[]byte{0x5d, 0x16, 0x44, 0xea, 0xec, 0x11, 0xf9, 0x83, 0x14, 0x75, 0x41, 0xe4, 0x6e, 0xeb, 0x27, 0x74},
 		[]byte{0x92, 0x66, 0x48, 0xb9, 0x86, 0x1e, 0xc0, 0x47, 0x1b, 0xa2, 0x17, 0x58, 0x85, 0x1c, 0x3d, 0xda, 0x31, 0xc9, 0x3b, 0x1d, 0xd6, 0x1, 0xaa, 0x4e, 0xad, 0x44, 0x15, 0xa2, 0x7, 0x59, 0xaa, 0xb9, 0xa6, 0xd8, 0x9f, 0x55, 0x13, 0x85, 0x85, 0x6e, 0x73, 0x57, 0x17, 0x29, 0xdf, 0x2f, 0x1d, 0x46, 0xd2, 0x5c, 0x13, 0xda, 0x2a, 0xd7, 0x5d, 0x0, 0xfd, 0x34, 0x13, 0xeb, 0xd9, 0x6c, 0xa4, 0x7d, 0x2, 0x95, 0x5c, 0x56, 0x9f, 0x7f, 0xab, 0x40, 0xf1, 0xa7, 0xfb, 0x23, 0x41, 0x41, 0x67, 0xa6, 0x53, 0xea, 0xbd, 0xf1, 0xad, 0x28, 0x3d, 0xf5, 0xe0, 0x7e, 0x7c, 0xf4, 0xaa, 0x2f, 0xba, 0xc6, 0x4f, 0x1d, 0x46, 0xf, 0xdf, 0x9a, 0x21, 0xee, 0xb2, 0x7a, 0x7f, 0x60, 0x72, 0x78, 0x53, 0xa4, 0x14, 0xc1, 0xc4, 0x50, 0xc5, 0x25, 0xe8, 0xda, 0xb6, 0xa3, 0xf1, 0x3c, 0xfa, 0x57, 0x17, 0x1a},
@@ -85,14 +124,26 @@ var spcContainerTests = []spcTest{
 }
 
 func TestGenCKC(t *testing.T) {
+	k := &Ksm{
+		Pub: pub,
+		Pri: pri,
+		Rck: RandomContentKey{},
+		DFunction:d.AppleD{},
+		Ask:[]byte{},
+	}
 	for _, test := range spcContainerTests {
 		spcMessage := readSPCMessage(test.filePath)
 
-		ckc, err := GenCKC(spcMessage)
+		ckc, err := k.GenCKC(spcMessage)
 		assert.NoError(t, err)
 
-		assert.NoError(t, ioutil.WriteFile(test.outFilePath,ckc,0777))
+		assert.NoError(t, ioutil.WriteFile(test.outFilePath, ckc, 0777))
 	}
+}
+
+func TestDebugCKC(t *testing.T) {
+	ckcMessage := readCKCMessage("testdata/o-cpc1.bin")
+	DebugCKC(ckcMessage)
 }
 
 func TestParseSPCContainer(t *testing.T) {
@@ -110,12 +161,13 @@ func TestParseSPCContainer(t *testing.T) {
 
 func TestParseSPCV1(t *testing.T) {
 	//FileReader:=rsa.FileReader{FileName:"testdata/Development Credentials/dev_private_key.pem"}
-	pem := []byte{} //TODO: server pk
+	pub := `` //TODO: server pk
+	pri := `` //TODO: server pk
 
 	for _, test := range spcContainerTests {
 		spcMessage := readSPCMessage(test.filePath)
 
-		spcContainer, err := ParseSPCV1(spcMessage, pem)
+		spcContainer, err := ParseSPCV1(spcMessage, pub, pri)
 		assert.NoError(t, err)
 
 		assert.Equal(t, test.encrypted_key, spcContainer.EncryptedAesKey)
@@ -139,6 +191,17 @@ func readSPCMessage(filePath string) []byte {
 	checkErr(err)
 
 	return spcMessage
+
+}
+func readCKCMessage(filePath string) []byte {
+	f, err := os.Open(filePath)
+	defer f.Close()
+	checkErr(err)
+
+	ckcMessage, err := ioutil.ReadAll(f)
+	checkErr(err)
+
+	return ckcMessage
 
 }
 
