@@ -61,6 +61,7 @@ type Ksm struct {
 	Ask []byte
 	DFunction d.D
 }
+
 // This function will compute the content key context returned to client by the SKDServer library.
 //       incoming server playback context (SPC message)
 func (k*Ksm)GenCKC(playback []byte) ([]byte, error) {
@@ -111,7 +112,7 @@ func (k*Ksm)GenCKC(playback []byte) ([]byte, error) {
 	fmt.Printf("assetId: %v\n", hex.EncodeToString(assetTTlv.Value))
 	fmt.Printf("assetId(string): %v\n", string(assetTTlv.Value))
 
-	enCk, err := encryptCK(assetTTlv.Value, k.Rck, DecryptedSKR1Payload.SK)
+	enCk,contentIv, err := encryptCK(assetTTlv.Value, k.Rck, DecryptedSKR1Payload.SK)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +129,7 @@ func (k*Ksm)GenCKC(playback []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	ckcPayload, err := genCkcPayload(ckcDataIv, enCk, ckcR1, returnTllvs)
+	ckcPayload, err := genCkcPayload(contentIv, enCk, ckcR1, returnTllvs, ttlvs)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +139,7 @@ func (k*Ksm)GenCKC(playback []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	out := FillCKCContainer(enCkcPayload.Payload, ckcDataIv)
+	out := fillCKCContainer(enCkcPayload.Payload, ckcDataIv)
 	return out, nil
 }
 
@@ -151,7 +152,7 @@ func DebugCKC(ckcplayback []byte) {
 	ckcContaniner.CKCPayload = ckcplayback[28 : 28+ckcContaniner.CKCPayloadLength]
 }
 
-func genCkcPayload(iv CkcDataIv, enCk []byte, ckcR1 CkcR1, returnTllvs []TLLVBlock) ([]byte, error) {
+func genCkcPayload(ckIv, enCk []byte, ckcR1 CkcR1, returnTllvs []TLLVBlock, tllvs map[uint64]TLLVBlock) ([]byte, error) {
 	//TODO: The order of these blocks should be random.
 	var ckcPayload []byte
 
@@ -163,7 +164,7 @@ func genCkcPayload(iv CkcDataIv, enCk []byte, ckcR1 CkcR1, returnTllvs []TLLVBlo
 	contentKeyTllv = append(contentKeyTllv, tagOut...)
 	contentKeyTllv = append(contentKeyTllv, []byte{0x00, 0x00, 0x00, 0x30}...) // Block length: Value(32) + Padding(16)
 	contentKeyTllv = append(contentKeyTllv, []byte{0x00, 0x00, 0x00, 0x20}...) // Value length: IV(16) + CK(16)
-	contentKeyTllv = append(contentKeyTllv, iv.IV...)
+	contentKeyTllv = append(contentKeyTllv, ckIv...)                           // 16-byte CBC initialization vector used in AES encryption and decryption of audio and video assets.
 	contentKeyTllv = append(contentKeyTllv, enCk...)
 
 	padding := make([]byte, 16)
@@ -180,8 +181,10 @@ func genCkcPayload(iv CkcDataIv, enCk []byte, ckcR1 CkcR1, returnTllvs []TLLVBlo
 	r1TllvBlock := NewTLLVBlock(Tag_R1, ckcR1.R1)
 	ckcPayload = append(ckcPayload, r1TllvBlock.Serialize()...)
 
-	//TODO; ContenKeyDurationTllv,  This TLLV may be present only if the KSM has received an SPC with a Media Playback State TLLV.
-	//
+	if ckDuration, ok := tllvs[Tag_Content_Key_Duration]; ok {
+		//TODO; ContenKeyDurationTllv,  This TLLV may be present only if the KSM has received an SPC with a Media Playback State TLLV.
+		panic(fmt.Sprintf("Not implemented ContenKeyDurationTllv yet.%v\n", ckDuration))
+	}
 
 	// serializeReturnRequesTllvs
 	for _, rtnTlv := range returnTllvs {
@@ -240,20 +243,21 @@ func findReturnRequestBlocks(spcv1 *SPCContainer) []TLLVBlock {
 	return returnTllvs
 }
 
-func encryptCK(assetId []byte, ck ContentKey, sk []byte) ([]byte, error) {
-	contentKey, err := ck.FetchContentKey(assetId)
+func encryptCK(assetId []byte, ck ContentKey, sk []byte) ([]byte,[]byte, error) {
+	contentKey,contentIv, err := ck.FetchContentKey(assetId)
 	if err != nil {
-		return nil, err
+		return nil,nil, err
 	}
 
 	var iv []byte
 	iv = make([]byte, len(contentKey), len(contentKey))
 
-	return aes.Encrypt(sk, iv, contentKey)
+	enCk,err:=aes.Encrypt(sk, iv, contentKey)
+	return enCk,contentIv,err
 }
 
 func ParseSPCV1(playback []byte, pub, pri string) (*SPCContainer, error) {
-	spcContainer := ParseSPCContainer(playback)
+	spcContainer := parseSPCContainer(playback)
 
 	spck, err := decryptSPCK(pub, pri, spcContainer.EncryptedAesKey)
 	if err != nil {
@@ -272,7 +276,7 @@ func ParseSPCV1(playback []byte, pub, pri string) (*SPCContainer, error) {
 	return spcContainer, nil
 }
 
-func ParseSPCContainer(playback []byte) *SPCContainer {
+func parseSPCContainer(playback []byte) *SPCContainer {
 	spcContainer := &SPCContainer{}
 	spcContainer.Version = binary.BigEndian.Uint32(playback[0:4])
 	spcContainer.Reserved = playback[4:8]
@@ -285,15 +289,15 @@ func ParseSPCContainer(playback []byte) *SPCContainer {
 	return spcContainer
 }
 
-func FillCKCContainer(CkcEncryptedPayload []byte, iv CkcDataIv) []byte {
-	clcMessage := CKCContaniner{
+func fillCKCContainer(CkcEncryptedPayload []byte, iv CkcDataIv) []byte {
+	ckcContaniner := CKCContaniner{
 		CKCVersion:   0x00000001,
 		Reserved:     []byte{0x00, 0x00, 0x00, 0x00},
 		CKCDataInitV: iv.IV,
 		CKCPayload:   CkcEncryptedPayload,
 	}
 
-	return clcMessage.Serialize()
+	return ckcContaniner.Serialize()
 }
 
 func parseTLLVs(spcpayload []byte) map[uint64]TLLVBlock {
@@ -358,7 +362,6 @@ func parseTLLVs(spcpayload []byte) map[uint64]TLLVBlock {
 
 		m[tag] = tllvBlock
 
-		//TODO: paring ttlv
 		currentOffset = currentOffset + int(blockLength)
 	}
 

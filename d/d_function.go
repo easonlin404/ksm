@@ -23,23 +23,12 @@ func (d CP_D_Function) Compute(R2 []byte, ask []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	/*
-		* @param[input]      data to encrypt or decrypt
-		* @param[output]     encrypted or decrypted data
-		* @param[inputSize]  size of data to encrypt
-		* @param[key]        key used to do the encryption or decryption
-		* @param[iv]         iv used to the encryption or decryption
-		* @param[opType]     kSKDServerAESEncrypt, or kSKDServerAESDecrypt
-		* @param[opMode]     kSKDServerAES_CBC, or kSKDServerAES_ECB
-		status = SKDServerAESEncryptDecrypt(tmp, DASk, 16, (UInt8*)ASk, NULL, kSKDServerAESEncrypt, kSKDServerAES_ECB);
-	*/
-	//
+
 	if len(DASk) != 16 {
 		errors.New("DASk key length doesn't equal 16")
 	}
 
 	return DASk, nil
-
 }
 
 func (d CP_D_Function) ComputeHashValue(R2 []byte) ([]byte, error) {
@@ -96,7 +85,8 @@ func (d CP_D_Function) ComputeHashValue(R2 []byte) ([]byte, error) {
 			}
 		}
 	}
-	///* append to M */
+
+	/* append to M */
 	for i = 0; i < 4; i++ {
 		pad[56+i] = uint8(MBlock[0] >> (8 * i))
 		pad[60+i] = uint8(MBlock[1] >> (8 * i))

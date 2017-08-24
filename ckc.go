@@ -3,7 +3,7 @@ package ksm
 import "crypto/rand"
 
 type ContentKey interface {
-	FetchContentKey(assetId []byte) ([]byte, error)
+	FetchContentKey(assetId []byte) ([]byte,[]byte, error)
 }
 
 var (
@@ -13,13 +13,12 @@ var (
 type RandomContentKey struct {
 }
 
-func (RandomContentKey) FetchContentKey(assetId []byte) ([]byte, error) {
+func (RandomContentKey) FetchContentKey(assetId []byte) ([]byte,[]byte, error) {
 	key := make([]byte, 16)
-	//iv := make([]byte, 16)
+	iv := make([]byte, 16)
 	rand.Read(key)
-	//rand.Read(iv)
-
-	return key, nil
+	rand.Read(iv)
+	return key,iv, nil
 }
 
 type CKCPayload struct {
