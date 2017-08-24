@@ -1,0 +1,63 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "bSdgR3TfKu5LtRcwORknm9EwUY4=",
+			"path": "github.com/89hmdys/toast/cipher",
+			"revision": "3a038d97263a2458545f6772c3ca218d6646954e",
+			"revisionTime": "2016-06-24T06:57:20Z"
+		},
+		{
+			"checksumSHA1": "LT8VhrTUqQdfB+rpG6Xs1Q1+eA4=",
+			"path": "github.com/89hmdys/toast/crypto",
+			"revision": "3a038d97263a2458545f6772c3ca218d6646954e",
+			"revisionTime": "2016-06-24T06:57:20Z"
+		},
+		{
+			"checksumSHA1": "7lRgdkSvEgO47inMjq7CvYWY1P8=",
+			"path": "github.com/89hmdys/toast/rsa",
+			"revision": "3a038d97263a2458545f6772c3ca218d6646954e",
+			"revisionTime": "2016-06-24T06:57:20Z"
+		},
+		{
+			"checksumSHA1": "BCmjskha6fhGDUxvgayGZnF8RUc=",
+			"path": "github.com/Sirupsen/logrus",
+			"revision": "181d419aa9e2223811b824e8f0b4af96f9ba9302",
+			"revisionTime": "2017-07-28T07:42:14Z"
+		},
+		{
+			"checksumSHA1": "OFu4xJEIjiI8Suu+j/gabfp+y6Q=",
+			"origin": "github.com/stretchr/testify/vendor/github.com/davecgh/go-spew/spew",
+			"path": "github.com/davecgh/go-spew/spew",
+			"revision": "eb84487caee2d64c96bb5c6afb60fd4f631eb0f0",
+			"revisionTime": "2017-05-26T06:56:33Z"
+		},
+		{
+			"checksumSHA1": "zKKp5SZ3d3ycKe4EKMNT0BqAWBw=",
+			"origin": "github.com/stretchr/testify/vendor/github.com/pmezard/go-difflib/difflib",
+			"path": "github.com/pmezard/go-difflib/difflib",
+			"revision": "eb84487caee2d64c96bb5c6afb60fd4f631eb0f0",
+			"revisionTime": "2017-05-26T06:56:33Z"
+		},
+		{
+			"checksumSHA1": "+Ssk8NUbYcQ7DKqmq0fDI0D4nkA=",
+			"path": "github.com/stretchr/testify/assert",
+			"revision": "eb84487caee2d64c96bb5c6afb60fd4f631eb0f0",
+			"revisionTime": "2017-05-26T06:56:33Z"
+		},
+		{
+			"checksumSHA1": "ZaU56svwLgiJD0y8JOB3+/mpYBA=",
+			"path": "golang.org/x/crypto/ssh/terminal",
+			"revision": "adbae1b6b6fb4b02448a0fc0dbbc9ba2b95b294d",
+			"revisionTime": "2017-06-19T06:03:41Z"
+		},
+		{
+			"checksumSHA1": "PugQbLLjnbBSj+NOXRYBVRnLuuQ=",
+			"path": "golang.org/x/sys/unix",
+			"revision": "b90f89a1e7a9c1f6b918820b3daa7f08488c8594",
+			"revisionTime": "2017-05-29T13:44:53Z"
+		}
+	],
+	"rootPath": "github.com/easonlin404/ksm"
+}
