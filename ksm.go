@@ -55,16 +55,16 @@ func (c *CKCContaniner) Serialize() []byte {
 }
 
 type Ksm struct {
-	Pub string
-	Pri string
-	Rck ContentKey
-	Ask []byte
+	Pub       string
+	Pri       string
+	Rck       ContentKey
+	Ask       []byte
 	DFunction d.D
 }
 
 // This function will compute the content key context returned to client by the SKDServer library.
 //       incoming server playback context (SPC message)
-func (k*Ksm)GenCKC(playback []byte) ([]byte, error) {
+func (k *Ksm) GenCKC(playback []byte) ([]byte, error) {
 	spcv1, err := ParseSPCV1(playback, k.Pub, k.Pri)
 	if err != nil {
 		return nil, err
@@ -112,7 +112,7 @@ func (k*Ksm)GenCKC(playback []byte) ([]byte, error) {
 	fmt.Printf("assetId: %v\n", hex.EncodeToString(assetTTlv.Value))
 	fmt.Printf("assetId(string): %v\n", string(assetTTlv.Value))
 
-	enCk,contentIv, err := encryptCK(assetTTlv.Value, k.Rck, DecryptedSKR1Payload.SK)
+	enCk, contentIv, err := encryptCK(assetTTlv.Value, k.Rck, DecryptedSKR1Payload.SK)
 	if err != nil {
 		return nil, err
 	}
@@ -243,17 +243,17 @@ func findReturnRequestBlocks(spcv1 *SPCContainer) []TLLVBlock {
 	return returnTllvs
 }
 
-func encryptCK(assetId []byte, ck ContentKey, sk []byte) ([]byte,[]byte, error) {
-	contentKey,contentIv, err := ck.FetchContentKey(assetId)
+func encryptCK(assetId []byte, ck ContentKey, sk []byte) ([]byte, []byte, error) {
+	contentKey, contentIv, err := ck.FetchContentKey(assetId)
 	if err != nil {
-		return nil,nil, err
+		return nil, nil, err
 	}
 
 	var iv []byte
 	iv = make([]byte, len(contentKey), len(contentKey))
 
-	enCk,err:=aes.Encrypt(sk, iv, contentKey)
-	return enCk,contentIv,err
+	enCk, err := aes.Encrypt(sk, iv, contentKey)
+	return enCk, contentIv, err
 }
 
 func ParseSPCV1(playback []byte, pub, pri string) (*SPCContainer, error) {
@@ -341,8 +341,8 @@ func parseTLLVs(spcpayload []byte) map[uint64]TLLVBlock {
 			fmt.Printf("Tag_ProtocolVersionUsed -- %x\n", tag)
 		case Tag_treamingIndicator:
 			fmt.Printf("Tag_treamingIndicator -- %x\n", tag)
-		case Tag_kSKDServerClientReferenceTime:
-			fmt.Printf("Tag_kSKDServerClientReferenceTime -- %x\n", tag)
+		case Tag_MediaPlaybackState:
+			fmt.Printf("Tag_MediaPlaybackState -- %x\n", tag)
 		default:
 			skip = true
 		}
@@ -351,6 +351,28 @@ func parseTLLVs(spcpayload []byte) map[uint64]TLLVBlock {
 			fmt.Printf("Tag size:0x%x\n", valueLength)
 			fmt.Printf("Tag length:0x%x\n", blockLength)
 			fmt.Printf("Tag value:%s\n\n", hex.EncodeToString(value))
+
+			if tag == Tag_MediaPlaybackState {
+				creationDate := binary.BigEndian.Uint32(value[0:4])
+				playbackState := binary.BigEndian.Uint32(value[4:8])
+				sessionId := binary.BigEndian.Uint32(value[8:12])
+				fmt.Printf("\t\t\tSPC creation time - %v\n", creationDate)
+
+				switch playbackState {
+				case Playback_State_ReadyToStart:
+					fmt.Println("\t\tPlayback_State_ReadyToStart.\n")
+				case Playback_State_PlayingOrPaused:
+					fmt.Println("\t\tPlayback_State_PlayingOrPaused.\n")
+				case Playback_State_Playing:
+					fmt.Println("\t\tPlayback_State_Playing.\n")
+				case Playback_State_Halted:
+					fmt.Println("\t\tPlayback_State_Halted.\n")
+				default:
+					fmt.Println("not expected.")
+				}
+				fmt.Printf("%x\n", playbackState)
+				fmt.Printf("\t\t\tPlayback Session Id - %v\n", sessionId)
+			}
 		}
 
 		tllvBlock := TLLVBlock{

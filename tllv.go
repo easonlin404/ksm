@@ -77,21 +77,34 @@ type CkcEncryptedPayload struct {
 	Payload []byte
 }
 
-const (
-	Tag_SessionKey_R1                 = 0x3d1a10b8bffac2ec
-	Tag_SessionKey_R1_integrity       = 0xb349d4809e910687
-	Tag_AntiReplaySeed                = 0x89c90f12204106b2
-	Tag_R2                            = 0x71b5595ac1521133
-	Tag_ReturnRequest                 = 0x19f9d4e5ab7609cb
-	Tag_AssetID                       = 0x1bf7f53f5d5d5a1f
-	Tag_TransactionID                 = 0x47aa7ad3440577de
-	Tag_ProtocolVersionsSupported     = 0x67b8fb79ecce1a13
-	Tag_ProtocolVersionUsed           = 0x5d81bcbcc7f61703
-	Tag_treamingIndicator             = 0xabb0256a31843974
-	Tag_kSKDServerClientReferenceTime = 0xeb8efdf2b25ab3a0 //Media playback state
+type CkcContentKeyDurationBlock struct {
+	TLLVBlock
 
-	//kSKDServerReturnTags,
-	kSKDServerKeyDurationTag = 0x47acf6a418cd091a
+	LeaseDuration  uint32 // 16-19, The duration of the lease, if any, in seconds.
+	RentalDuration uint32 // 20-23, The duration of the rental, if any, in seconds.
+	KeyType        uint32 // 24-27,The key type.
+	Reserved       uint32 // Reserved; set to a fixed value of 0x86d34a3a.
+	Padding        []byte // Random values to fill out the TLLV to a multiple of 16 bytes.
+
+}
+
+const (
+	Tag_SessionKey_R1             = 0x3d1a10b8bffac2ec
+	Tag_SessionKey_R1_integrity   = 0xb349d4809e910687
+	Tag_AntiReplaySeed            = 0x89c90f12204106b2
+	Tag_R2                        = 0x71b5595ac1521133
+	Tag_ReturnRequest             = 0x19f9d4e5ab7609cb
+	Tag_AssetID                   = 0x1bf7f53f5d5d5a1f
+	Tag_TransactionID             = 0x47aa7ad3440577de
+	Tag_ProtocolVersionsSupported = 0x67b8fb79ecce1a13
+	Tag_ProtocolVersionUsed       = 0x5d81bcbcc7f61703
+	Tag_treamingIndicator         = 0xabb0256a31843974
+	Tag_MediaPlaybackState        = 0xeb8efdf2b25ab3a0
+
+	Playback_State_ReadyToStart    = 0xf4dee5a2
+	Playback_State_PlayingOrPaused = 0xa5d6739e
+	Playback_State_Playing         = 0x4f834330
+	Playback_State_Halted          = 0x5991bf20
 )
 
 const (

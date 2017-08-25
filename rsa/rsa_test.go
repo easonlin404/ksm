@@ -68,7 +68,7 @@ func TestEncryptAndDecryptFromFile(t *testing.T) {
 	assert.NoError(t, err)
 
 	en, err := EncryptByCert(der, origData)
-	assert.NoError(t, err) //TODO: public key error
+	assert.NoError(t, err)
 
 	de, err := Decrypt(pem, en)
 	assert.NoError(t, err)
