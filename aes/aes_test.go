@@ -3,7 +3,6 @@ package aes
 import (
 	"encoding/base64"
 	"encoding/hex"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,13 +14,10 @@ func TestEncrypt(t *testing.T) {
 
 	keyByteAry, _ := hex.DecodeString(key)
 	ivByteAry, _ := hex.DecodeString(iv)
-	fmt.Println(len(keyByteAry))
-	fmt.Println(len(ivByteAry))
 	plainText := []byte("ABCDEFG")
 
 	crypted, err := Encrypt(keyByteAry, ivByteAry, plainText)
 
-	fmt.Println("crypted:%+v", crypted)
 	enText := base64.StdEncoding.EncodeToString(crypted)
 	assert.NoError(t, err)
 	assert.Equal(t, "3iIEkNQUcSar6WP8QnW1Sg==", enText)
@@ -37,9 +33,7 @@ func TestDecrypt(t *testing.T) {
 	enBase64Str := "3iIEkNQUcSar6WP8QnW1Sg=="
 
 	en, err := base64.StdEncoding.DecodeString(enBase64Str)
-	if err != nil {
-		fmt.Println(err)
-	}
+	assert.NoError(t, err)
 
 	plainText, err := Decrypt(keyByteAry, ivByteAry, en)
 
