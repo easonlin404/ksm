@@ -360,13 +360,13 @@ func parseTLLVs(spcpayload []byte) map[uint64]TLLVBlock {
 
 				switch playbackState {
 				case Playback_State_ReadyToStart:
-					fmt.Println("\t\tPlayback_State_ReadyToStart.\n")
+					fmt.Println("\t\tPlayback_State_ReadyToStart.")
 				case Playback_State_PlayingOrPaused:
-					fmt.Println("\t\tPlayback_State_PlayingOrPaused.\n")
+					fmt.Println("\t\tPlayback_State_PlayingOrPaused.")
 				case Playback_State_Playing:
-					fmt.Println("\t\tPlayback_State_Playing.\n")
+					fmt.Println("\t\tPlayback_State_Playing.")
 				case Playback_State_Halted:
-					fmt.Println("\t\tPlayback_State_Halted.\n")
+					fmt.Println("\t\tPlayback_State_Halted.")
 				default:
 					fmt.Println("not expected.")
 				}

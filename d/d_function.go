@@ -25,7 +25,7 @@ func (d CP_D_Function) Compute(R2 []byte, ask []byte) ([]byte, error) {
 	}
 
 	if len(DASk) != 16 {
-		errors.New("DASk key length doesn't equal 16")
+		return nil, errors.New("DASk key length doesn't equal 16")
 	}
 
 	return DASk, nil
