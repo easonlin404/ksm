@@ -4,7 +4,7 @@ import (
 	"crypto/sha1"
 	"errors"
 
-	"github.com/easonlin404/ksm/aes"
+	"github.com/easonlin404/ksm/crypto/aes"
 )
 
 const PRIME = uint32(813416437)

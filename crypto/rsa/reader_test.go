@@ -7,7 +7,7 @@ import (
 
 func TestFileReader_Read(t *testing.T) {
 
-	keyReader := FileReader{FileName: "../testdata/Development Credentials/dev_private_key.pem"}
+	keyReader := FileReader{FileName: "../../testdata/Development Credentials/dev_private_key.pem"}
 
 	b, err := keyReader.ReadPem()
 	assert.NoError(t, err)

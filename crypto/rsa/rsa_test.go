@@ -58,8 +58,8 @@ func TestEncryptAndDecrypt(t *testing.T) {
 func TestEncryptAndDecryptFromFile(t *testing.T) {
 	origData := []byte("plainText")
 
-	pemReader := FileReader{FileName: "../testdata/Development Credentials/dev_private_key.pem"}
-	derReader := FileReader{FileName: "../testdata/Development Credentials/certificate.pem"}
+	pemReader := FileReader{FileName: "../../testdata/Development Credentials/dev_private_key.pem"}
+	derReader := FileReader{FileName: "../../testdata/Development Credentials/certificate.pem"}
 
 	der, err := derReader.ReadPem()
 	assert.NoError(t, err)

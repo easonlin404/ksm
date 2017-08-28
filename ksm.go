@@ -9,9 +9,9 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/easonlin404/ksm/aes"
+	"github.com/easonlin404/ksm/crypto/aes"
 	"github.com/easonlin404/ksm/d"
-	"github.com/easonlin404/ksm/rsa"
+	"github.com/easonlin404/ksm/crypto/rsa"
 )
 
 type SPCContainer struct {
