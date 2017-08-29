@@ -109,8 +109,10 @@ func (k *Ksm) GenCKC(playback []byte) ([]byte, error) {
 	if assetTTlv.ValueLength < 2 || assetTTlv.ValueLength > 200 {
 		return nil, errors.New("assetId its length must be range from 2 to 200 bytes")
 	}
-	fmt.Printf("assetId: %v\n", hex.EncodeToString(assetTTlv.Value))
-	fmt.Printf("assetId(string): %v\n", string(assetTTlv.Value))
+
+	assetId:=assetTTlv.Value
+	fmt.Printf("assetId: %v\n", hex.EncodeToString(assetId))
+	fmt.Printf("assetId(string): %v\n", string(assetId))
 
 	enCk, contentIv, err := encryptCK(assetTTlv.Value, k.Rck, DecryptedSKR1Payload.SK)
 	if err != nil {
@@ -129,9 +131,19 @@ func (k *Ksm) GenCKC(playback []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	ckcPayload, err := genCkcPayload(contentIv, enCk, ckcR1, returnTllvs, ttlvs)
+	ckcPayload, err := genCkcPayload(contentIv, enCk, ckcR1, returnTllvs)
 	if err != nil {
 		return nil, err
+	}
+
+	//ContenKeyDurationTllv,  This TLLV may be present only if the KSM has received an SPC with a Media Playback State TLLV.
+	if _, ok := ttlvs[Tag_MediaPlaybackState]; ok {
+		ckcDuraionTllv,err:=genCkDurationTllv(assetId,k.Rck)
+		if err != nil {
+			return nil, err
+		}
+
+		ckcPayload = append(ckcPayload, ckcDuraionTllv...)
 	}
 
 	enCkcPayload, err := encryptCkcPayload(encryptedArSeed, ckcDataIv, ckcPayload)
@@ -143,6 +155,14 @@ func (k *Ksm) GenCKC(playback []byte) ([]byte, error) {
 	return out, nil
 }
 
+func genCkDurationTllv(assetId []byte,key ContentKey)([]byte,error){
+	CkcContentKeyDurationBlock, err:=key.FetchContentKeyDuration(assetId)
+	if err != nil {
+		return nil, err
+	}
+	return CkcContentKeyDurationBlock.Serialize(),nil
+}
+
 func DebugCKC(ckcplayback []byte) {
 	ckcContaniner := &CKCContaniner{}
 	ckcContaniner.CKCVersion = binary.BigEndian.Uint32(ckcplayback[0:4])
@@ -152,7 +172,7 @@ func DebugCKC(ckcplayback []byte) {
 	ckcContaniner.CKCPayload = ckcplayback[28 : 28+ckcContaniner.CKCPayloadLength]
 }
 
-func genCkcPayload(ckIv, enCk []byte, ckcR1 CkcR1, returnTllvs []TLLVBlock, tllvs map[uint64]TLLVBlock) ([]byte, error) {
+func genCkcPayload(ckIv, enCk []byte, ckcR1 CkcR1, returnTllvs []TLLVBlock) ([]byte, error) {
 	//TODO: The order of these blocks should be random.
 	var ckcPayload []byte
 
@@ -181,10 +201,6 @@ func genCkcPayload(ckIv, enCk []byte, ckcR1 CkcR1, returnTllvs []TLLVBlock, tllv
 	r1TllvBlock := NewTLLVBlock(Tag_R1, ckcR1.R1)
 	ckcPayload = append(ckcPayload, r1TllvBlock.Serialize()...)
 
-	if ckDuration, ok := tllvs[Tag_Content_Key_Duration]; ok {
-		//TODO; ContenKeyDurationTllv,  This TLLV may be present only if the KSM has received an SPC with a Media Playback State TLLV.
-		panic(fmt.Sprintf("Not implemented ContenKeyDurationTllv yet.%v\n", ckDuration))
-	}
 
 	// serializeReturnRequesTllvs
 	for _, rtnTlv := range returnTllvs {

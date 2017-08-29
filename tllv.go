@@ -78,14 +78,41 @@ type CkcEncryptedPayload struct {
 }
 
 type CkcContentKeyDurationBlock struct {
-	TLLVBlock
+	*TLLVBlock
 
 	LeaseDuration  uint32 // 16-19, The duration of the lease, if any, in seconds.
 	RentalDuration uint32 // 20-23, The duration of the rental, if any, in seconds.
 	KeyType        uint32 // 24-27,The key type.
-	Reserved       uint32 // Reserved; set to a fixed value of 0x86d34a3a.
-	Padding        []byte // Random values to fill out the TLLV to a multiple of 16 bytes.
+	//Reserved       uint32 // Reserved; set to a fixed value of 0x86d34a3a.
+	//Padding        []byte // Random values to fill out the TLLV to a multiple of 16 bytes.
 
+}
+
+func newCkcContentKeyDurationBlock(LeaseDuration, RentalDuration uint32) *CkcContentKeyDurationBlock {
+	var value []byte
+
+	LeaseDurationOut := make([]byte, 4)
+	binary.BigEndian.PutUint32(LeaseDurationOut, LeaseDuration)
+
+	rentalDurationOut := make([]byte, 4)
+	binary.BigEndian.PutUint32(rentalDurationOut, RentalDuration)
+
+	keyTypeOut := make([]byte, 4)
+	binary.BigEndian.PutUint32(keyTypeOut, Content_Key_valid_for_lease)
+
+	value = append(value, LeaseDurationOut...)
+	value = append(value, rentalDurationOut...)
+	value = append(value, keyTypeOut...)
+	value = append(value, []byte{0x86, 0xd3, 0x4a, 0x3a}...) //Reserved
+
+	tllv := NewTLLVBlock(Tag_Content_Key_Duration, value)
+
+	return &CkcContentKeyDurationBlock{
+		TLLVBlock:      tllv,
+		LeaseDuration:  LeaseDuration,
+		RentalDuration: RentalDuration,
+		KeyType:        Content_Key_valid_for_lease,
+	}
 }
 
 const (
@@ -118,4 +145,8 @@ const (
 	Tag_R1                   = 0xea74c4645d5efee9
 	Tag_Content_Key_Duration = 0x47acf6a418cd091a
 	Tag_HDCP_Enforcement     = 0x2e52f1530d8ddb4a
+
+	Content_Key_valid_for_lease  = 0x1a4bde7e
+	Content_key_valid_for_rental = 0x3dfe45a0
+	Content_key_valid_for_both   = 0x27b59bde
 )
