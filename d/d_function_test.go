@@ -78,7 +78,7 @@ var testsData = []testHashValue{
 	},
 }
 
-func TestCP_D_Function_ComputeHashValue(t *testing.T) {
+	func TestCP_D_Function_ComputeHashValue(t *testing.T) {
 	d := CP_D_Function{}
 	for _, test := range testsData {
 

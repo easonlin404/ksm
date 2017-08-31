@@ -88,7 +88,7 @@ type CkcContentKeyDurationBlock struct {
 
 }
 
-func newCkcContentKeyDurationBlock(LeaseDuration, RentalDuration uint32) *CkcContentKeyDurationBlock {
+func NewCkcContentKeyDurationBlock(LeaseDuration, RentalDuration uint32) *CkcContentKeyDurationBlock {
 	var value []byte
 
 	LeaseDurationOut := make([]byte, 4)

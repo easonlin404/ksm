@@ -30,7 +30,7 @@ func (RandomContentKey) FetchContentKeyDuration(assetId []byte) (*CkcContentKeyD
 	LeaseDuration := mathRand.Uint32()  // The duration of the lease, if any, in seconds.
 	RentalDuration := mathRand.Uint32() // The duration of the rental, if any, in seconds.
 
-	return newCkcContentKeyDurationBlock(LeaseDuration, RentalDuration), nil
+	return NewCkcContentKeyDurationBlock(LeaseDuration, RentalDuration), nil
 }
 
 type CKCPayload struct {
