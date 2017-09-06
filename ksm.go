@@ -10,8 +10,8 @@ import (
 	"reflect"
 
 	"github.com/easonlin404/ksm/crypto/aes"
-	"github.com/easonlin404/ksm/d"
 	"github.com/easonlin404/ksm/crypto/rsa"
+	"github.com/easonlin404/ksm/d"
 )
 
 type SPCContainer struct {
@@ -71,9 +71,9 @@ func (k *Ksm) GenCKC(playback []byte) ([]byte, error) {
 	}
 
 	ttlvs := spcv1.TTLVS
-	skr1 := parseSKR1(ttlvs[Tag_SessionKey_R1])
+	skr1 := parseSKR1(ttlvs[tagSessionKeyR1])
 
-	r2 := ttlvs[Tag_R2]
+	r2 := ttlvs[tagR2]
 	dask, err := k.DFunction.Compute(r2.Value, k.Ask)
 
 	if err != nil {
@@ -87,9 +87,9 @@ func (k *Ksm) GenCKC(playback []byte) ([]byte, error) {
 	fmt.Printf("DASk Value:\n\t%s\n\n", hex.EncodeToString(dask))
 
 	//Check the integrity of this SPC message
-	checkTheIntegrity, ok := ttlvs[Tag_SessionKey_R1_integrity]
+	checkTheIntegrity, ok := ttlvs[tagSessionKeyR1Integrity]
 	if !ok {
-		return nil, errors.New("Tag_SessionKey_R1_integrity block doesn't existed.")
+		return nil, errors.New("tagSessionKeyR1Integrity block doesn't existed.")
 	}
 
 	fmt.Printf("checkTheIntegrity: %s\n", hex.EncodeToString(checkTheIntegrity.Value))
@@ -103,14 +103,14 @@ func (k *Ksm) GenCKC(playback []byte) ([]byte, error) {
 	fmt.Printf("SPC [SK..R1] IV Value:\n\t%s\n\n", hex.EncodeToString(skr1.IV))
 	//fmt.Printf("SPC R1 Value:\n%s\n\n",hex.EncodeToString(DecryptedSKR1Payload.R1))
 
-	assetTTlv := ttlvs[Tag_AssetID]
+	assetTTlv := ttlvs[tagAssetId]
 
 	// assetId its length can range from 2 to 200 bytes
 	if assetTTlv.ValueLength < 2 || assetTTlv.ValueLength > 200 {
 		return nil, errors.New("assetId its length must be range from 2 to 200 bytes")
 	}
 
-	assetId:=assetTTlv.Value
+	assetId := assetTTlv.Value
 	fmt.Printf("assetId: %v\n", hex.EncodeToString(assetId))
 	fmt.Printf("assetId(string): %v\n", string(assetId))
 
@@ -126,7 +126,7 @@ func (k *Ksm) GenCKC(playback []byte) ([]byte, error) {
 		R1: DecryptedSKR1Payload.R1,
 	}
 
-	encryptedArSeed, err := getEncryptedArSeed(DecryptedSKR1Payload.R1, ttlvs[Tag_AntiReplaySeed].Value)
+	encryptedArSeed, err := getEncryptedArSeed(DecryptedSKR1Payload.R1, ttlvs[tagAntiReplaySeed].Value)
 	if err != nil {
 		return nil, err
 	}
@@ -137,8 +137,8 @@ func (k *Ksm) GenCKC(playback []byte) ([]byte, error) {
 	}
 
 	//ContenKeyDurationTllv,  This TLLV may be present only if the KSM has received an SPC with a Media Playback State TLLV.
-	if _, ok := ttlvs[Tag_MediaPlaybackState]; ok {
-		ckcDuraionTllv,err:=genCkDurationTllv(assetId,k.Rck)
+	if _, ok := ttlvs[tagMediaPlaybackState]; ok {
+		ckcDuraionTllv, err := genCkDurationTllv(assetId, k.Rck)
 		if err != nil {
 			return nil, err
 		}
@@ -155,12 +155,12 @@ func (k *Ksm) GenCKC(playback []byte) ([]byte, error) {
 	return out, nil
 }
 
-func genCkDurationTllv(assetId []byte,key ContentKey)([]byte,error){
-	CkcContentKeyDurationBlock, err:=key.FetchContentKeyDuration(assetId)
+func genCkDurationTllv(assetId []byte, key ContentKey) ([]byte, error) {
+	CkcContentKeyDurationBlock, err := key.FetchContentKeyDuration(assetId)
 	if err != nil {
 		return nil, err
 	}
-	return CkcContentKeyDurationBlock.Serialize(),nil
+	return CkcContentKeyDurationBlock.Serialize(), nil
 }
 
 func DebugCKC(ckcplayback []byte) {
@@ -180,7 +180,7 @@ func genCkcPayload(ckIv, enCk []byte, ckcR1 CkcR1, returnTllvs []TLLVBlock) ([]b
 	var contentKeyTllv []byte
 
 	tagOut := make([]byte, 8)
-	binary.BigEndian.PutUint64(tagOut, Tag_Encrypted_CK)
+	binary.BigEndian.PutUint64(tagOut, tagEncryptedCk)
 	contentKeyTllv = append(contentKeyTllv, tagOut...)
 	contentKeyTllv = append(contentKeyTllv, []byte{0x00, 0x00, 0x00, 0x30}...) // Block length: Value(32) + Padding(16)
 	contentKeyTllv = append(contentKeyTllv, []byte{0x00, 0x00, 0x00, 0x20}...) // Value length: IV(16) + CK(16)
@@ -198,9 +198,8 @@ func genCkcPayload(ckIv, enCk []byte, ckcR1 CkcR1, returnTllvs []TLLVBlock) ([]b
 	ckcPayload = append(ckcPayload, contentKeyTllv...)
 
 	//R1Tllv
-	r1TllvBlock := NewTLLVBlock(Tag_R1, ckcR1.R1)
+	r1TllvBlock := NewTLLVBlock(tagR1, ckcR1.R1)
 	ckcPayload = append(ckcPayload, r1TllvBlock.Serialize()...)
-
 
 	// serializeReturnRequesTllvs
 	for _, rtnTlv := range returnTllvs {
@@ -238,7 +237,7 @@ func encryptCkcPayload(encryptedArSeed []byte, iv CkcDataIv, ckcPayload []byte) 
 }
 
 func findReturnRequestBlocks(spcv1 *SPCContainer) []TLLVBlock {
-	tagReturnReq := spcv1.TTLVS[Tag_ReturnRequest]
+	tagReturnReq := spcv1.TTLVS[tagReturnRequest]
 
 	var returnTllvs []TLLVBlock
 
@@ -253,7 +252,7 @@ func findReturnRequestBlocks(spcv1 *SPCContainer) []TLLVBlock {
 			panic("Can not found  tag")
 		}
 
-		currentOffset += Field_Tag_Length
+		currentOffset += fieldTagLength
 	}
 
 	return returnTllvs
@@ -322,14 +321,14 @@ func parseTLLVs(spcpayload []byte) map[uint64]TLLVBlock {
 
 	for currentOffset := 0; currentOffset < len(spcpayload); {
 
-		tag := binary.BigEndian.Uint64(spcpayload[currentOffset : currentOffset+Field_Tag_Length])
-		currentOffset += Field_Tag_Length
+		tag := binary.BigEndian.Uint64(spcpayload[currentOffset : currentOffset+fieldTagLength])
+		currentOffset += fieldTagLength
 
-		blockLength := binary.BigEndian.Uint32(spcpayload[currentOffset : currentOffset+Field_Block_Length])
-		currentOffset += Field_Block_Length
+		blockLength := binary.BigEndian.Uint32(spcpayload[currentOffset : currentOffset+fieldBlockLength])
+		currentOffset += fieldBlockLength
 
-		valueLength := binary.BigEndian.Uint32(spcpayload[currentOffset : currentOffset+Field_Value_Length])
-		currentOffset += Field_Value_Length
+		valueLength := binary.BigEndian.Uint32(spcpayload[currentOffset : currentOffset+fieldValueLength])
+		currentOffset += fieldValueLength
 
 		//paddingSize := blockLength - valueLength
 
@@ -337,28 +336,28 @@ func parseTLLVs(spcpayload []byte) map[uint64]TLLVBlock {
 
 		var skip bool
 		switch tag {
-		case Tag_SessionKey_R1:
-			fmt.Printf("Tag_SessionKey_R1 -- %x\n", tag)
-		case Tag_SessionKey_R1_integrity:
-			fmt.Printf("Tag_SessionKey_R1_integrity -- %x\n", tag)
-		case Tag_AntiReplaySeed:
-			fmt.Printf("Tag_AntiReplaySeed -- %x\n", tag)
-		case Tag_R2:
-			fmt.Printf("Tag_R2 -- %x\n", tag)
-		case Tag_ReturnRequest:
-			fmt.Printf("Tag_ReturnRequest -- %x\n", tag)
-		case Tag_AssetID:
-			fmt.Printf("Tag_AssetID -- %x\n", tag)
-		case Tag_TransactionID:
-			fmt.Printf("Tag_TransactionID -- %x\n", tag)
-		case Tag_ProtocolVersionsSupported:
-			fmt.Printf("Tag_ProtocolVersionsSupported -- %x\n", tag)
-		case Tag_ProtocolVersionUsed:
-			fmt.Printf("Tag_ProtocolVersionUsed -- %x\n", tag)
-		case Tag_treamingIndicator:
-			fmt.Printf("Tag_treamingIndicator -- %x\n", tag)
-		case Tag_MediaPlaybackState:
-			fmt.Printf("Tag_MediaPlaybackState -- %x\n", tag)
+		case tagSessionKeyR1:
+			fmt.Printf("tagSessionKeyR1 -- %x\n", tag)
+		case tagSessionKeyR1Integrity:
+			fmt.Printf("tagSessionKeyR1Integrity -- %x\n", tag)
+		case tagAntiReplaySeed:
+			fmt.Printf("tagAntiReplaySeed -- %x\n", tag)
+		case tagR2:
+			fmt.Printf("tagR2 -- %x\n", tag)
+		case tagReturnRequest:
+			fmt.Printf("tagReturnRequest -- %x\n", tag)
+		case tagAssetId:
+			fmt.Printf("tagAssetId -- %x\n", tag)
+		case tagTransactionId:
+			fmt.Printf("tagTransactionId -- %x\n", tag)
+		case tagProtocolVersionsSupported:
+			fmt.Printf("tagProtocolVersionsSupported -- %x\n", tag)
+		case tagProtocolVersionUsed:
+			fmt.Printf("tagProtocolVersionUsed -- %x\n", tag)
+		case tagTreamingIndicator:
+			fmt.Printf("tagTreamingIndicator -- %x\n", tag)
+		case tagMediaPlaybackState:
+			fmt.Printf("tagMediaPlaybackState -- %x\n", tag)
 		default:
 			skip = true
 		}
@@ -368,20 +367,20 @@ func parseTLLVs(spcpayload []byte) map[uint64]TLLVBlock {
 			fmt.Printf("Tag length:0x%x\n", blockLength)
 			fmt.Printf("Tag value:%s\n\n", hex.EncodeToString(value))
 
-			if tag == Tag_MediaPlaybackState {
+			if tag == tagMediaPlaybackState {
 				creationDate := binary.BigEndian.Uint32(value[0:4])
 				playbackState := binary.BigEndian.Uint32(value[4:8])
 				sessionId := binary.BigEndian.Uint32(value[8:12])
 				fmt.Printf("\t\t\tSPC creation time - %v\n", creationDate)
 
 				switch playbackState {
-				case Playback_State_ReadyToStart:
+				case playbackStateReadyToStart:
 					fmt.Println("\t\tPlayback_State_ReadyToStart.")
-				case Playback_State_PlayingOrPaused:
+				case playbackStatePlayingOrPaused:
 					fmt.Println("\t\tPlayback_State_PlayingOrPaused.")
-				case Playback_State_Playing:
+				case playbackStatePlaying:
 					fmt.Println("\t\tPlayback_State_Playing.")
-				case Playback_State_Halted:
+				case playbackStateHalted:
 					fmt.Println("\t\tPlayback_State_Halted.")
 				default:
 					fmt.Println("not expected.")
@@ -415,8 +414,8 @@ func parseSKR1(tllv TLLVBlock) *SKR1TLLVBlock {
 }
 
 func decryptSKR1Payload(skr1 SKR1TLLVBlock, dask []byte) (*DecryptedSKR1Payload, error) {
-	if skr1.Tag != Tag_SessionKey_R1 {
-		return nil, errors.New("decryptSKR1 doesn't match Tag_SessionKey_R1 tag.")
+	if skr1.Tag != tagSessionKeyR1 {
+		return nil, errors.New("decryptSKR1 doesn't match tagSessionKeyR1 tag.")
 	}
 
 	decryptPayloadRow, err := aes.Decrypt(dask, skr1.IV, skr1.Payload)
