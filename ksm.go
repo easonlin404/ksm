@@ -160,7 +160,7 @@ func genCkDurationTllv(assetId []byte, key ContentKey) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return CkcContentKeyDurationBlock.Serialize(), nil
+	return CkcContentKeyDurationBlock.Serialize()
 }
 
 func DebugCKC(ckcplayback []byte) {
@@ -199,11 +199,20 @@ func genCkcPayload(ckIv, enCk []byte, ckcR1 CkcR1, returnTllvs []TLLVBlock) ([]b
 
 	//R1Tllv
 	r1TllvBlock := NewTLLVBlock(tagR1, ckcR1.R1)
-	ckcPayload = append(ckcPayload, r1TllvBlock.Serialize()...)
+
+	r1TllvBlockOut, err := r1TllvBlock.Serialize()
+	if err != nil {
+		return nil, err
+	}
+	ckcPayload = append(ckcPayload, r1TllvBlockOut...)
 
 	// serializeReturnRequesTllvs
 	for _, rtnTlv := range returnTllvs {
-		ckcPayload = append(ckcPayload, rtnTlv.Serialize()...)
+		rtnTlvOut, err := rtnTlv.Serialize()
+		if err != nil {
+			return nil, err
+		}
+		ckcPayload = append(ckcPayload, rtnTlvOut...)
 	}
 
 	return ckcPayload, nil

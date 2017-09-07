@@ -3,6 +3,7 @@ package ksm
 import (
 	"crypto/rand"
 	"encoding/binary"
+	"errors"
 )
 
 type TLLVBlock struct {
@@ -25,7 +26,11 @@ func NewTLLVBlock(tag uint64, value []byte) *TLLVBlock {
 	}
 }
 
-func (t *TLLVBlock) Serialize() []byte {
+func (t *TLLVBlock) Serialize() ([]byte, error) {
+	if err := t.check(); err != nil {
+		return nil, err
+	}
+
 	var out []byte
 
 	tagOut := make([]byte, 8)
@@ -49,7 +54,17 @@ func (t *TLLVBlock) Serialize() []byte {
 	out = append(out, t.Value...)
 	out = append(out, paddingOut...)
 
-	return out
+	return out, nil
+}
+
+func (t *TLLVBlock) check() error {
+	if t.Tag == 0 {
+		return errors.New("tag not found")
+	}
+	if len(t.Value) == 0 {
+		return errors.New("value not found")
+	}
+	return nil
 }
 
 type SKR1TLLVBlock struct {
