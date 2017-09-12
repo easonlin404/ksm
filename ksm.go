@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/easonlin404/ksm/crypto/aes"
 	"github.com/easonlin404/ksm/crypto/rsa"
@@ -468,7 +469,16 @@ func decryptSPCK(pub, pri string, enSpck []byte) ([]byte, error) {
 	if len(enSpck) != 128 {
 		return nil, errors.New("Wrong [SPCK] length, must be 128")
 	}
-	return rsa.OAEPPDecrypt(pub, pri, enSpck)
+	spck, err := rsa.OAEPPDecrypt(pub, pri, enSpck)
+
+	if err != nil {
+		// create a slice for the errors
+		var errstrings []string
+		errstrings = append(errstrings, err.Error())
+		return nil, fmt.Errorf(strings.Join(errstrings, "\n"))
+	}
+
+	return spck, nil
 }
 
 // SPC payload = AES_CBCIV d([SPC data])SPCK where
