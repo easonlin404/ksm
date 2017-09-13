@@ -474,6 +474,7 @@ func decryptSPCK(pub, pri string, enSpck []byte) ([]byte, error) {
 	if err != nil {
 		// create a slice for the errors
 		var errstrings []string
+		errstrings = append(errstrings, fmt.Errorf("decryptSPCK error:public key cann't matched").Error())
 		errstrings = append(errstrings, err.Error())
 		return nil, fmt.Errorf(strings.Join(errstrings, "\n"))
 	}
