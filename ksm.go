@@ -67,8 +67,7 @@ type Ksm struct {
 	DFunction d.D
 }
 
-// This function will compute the content key context returned to client by the SKDServer library.
-//       incoming server playback context (SPC message)
+// GenCKC computes the incoming server playback context (SPC message) returned to client by the SKDServer library.
 func (k *Ksm) GenCKC(playback []byte) ([]byte, error) {
 	spcv1, err := ParseSPCV1(playback, k.Pub, k.Pri)
 	if err != nil {
@@ -168,6 +167,7 @@ func genCkDurationTllv(assetId []byte, key ContentKey) ([]byte, error) {
 	return CkcContentKeyDurationBlock.Serialize()
 }
 
+// DebugCKC debbug ckcplayback content
 func DebugCKC(ckcplayback []byte) {
 	ckcContaniner := &CKCContainer{}
 	ckcContaniner.CKCVersion = binary.BigEndian.Uint32(ckcplayback[0:4])
@@ -285,6 +285,8 @@ func encryptCK(assetId []byte, ck ContentKey, sk []byte) ([]byte, []byte, error)
 	return enCk, contentIv, err
 }
 
+// ParseSPCV1 parses playback, public and private key pairs to new a SPCContainer instance.
+// ParseSPCV1 returns an error if playback can't be parsed.
 func ParseSPCV1(playback []byte, pub, pri string) (*SPCContainer, error) {
 	spcContainer := parseSPCContainer(playback)
 
