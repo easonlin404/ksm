@@ -21,7 +21,9 @@ func TestNewTRLLVBlock(t *testing.T) {
 func TestTLLVBlock_Serialize_error(t *testing.T) {
 	b1 := NewTLLVBlock(tagSessionKeyR1, []byte{})
 	_, err1 := b1.Serialize()
-	assert.Error(t, err1)
+
+	//TODO: expect debug log
+	assert.NoError(t, err1)
 
 	b2 := NewTLLVBlock(0, []byte{})
 	_, err2 := b2.Serialize()
