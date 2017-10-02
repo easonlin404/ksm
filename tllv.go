@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"errors"
+	"fmt"
 )
 
 type TLLVBlock struct {
@@ -62,7 +63,9 @@ func (t *TLLVBlock) check() error {
 		return errors.New("tag not found")
 	}
 	if len(t.Value) == 0 {
-		return errors.New("value not found")
+		//The number of bytes in the value field. This number may be any amount, including 0x0000
+		//TODO: using debug log
+		fmt.Printf("tag: %x :value not found\n", t.Tag)
 	}
 	return nil
 }
