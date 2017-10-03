@@ -5,6 +5,7 @@ import (
 	mathRand "math/rand"
 )
 
+// CKCPayload is a interface that fetch asset content key.
 type ContentKey interface {
 	FetchContentKey(assetId []byte) ([]byte, []byte, error)
 	FetchContentKeyDuration(assetId []byte) (*CkcContentKeyDurationBlock, error)
@@ -33,6 +34,7 @@ func (RandomContentKey) FetchContentKeyDuration(assetId []byte) (*CkcContentKeyD
 	return NewCkcContentKeyDurationBlock(LeaseDuration, RentalDuration), nil
 }
 
+// CKCPayload is a object that store ckc payload.
 type CKCPayload struct {
 	SK             []byte //Session key
 	HU             []byte
