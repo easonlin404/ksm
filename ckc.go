@@ -19,6 +19,7 @@ var (
 type RandomContentKey struct {
 }
 
+// FetchContentKey returns content key and iv for the given assetId.
 func (RandomContentKey) FetchContentKey(assetId []byte) ([]byte, []byte, error) {
 	key := make([]byte, 16)
 	iv := make([]byte, 16)
