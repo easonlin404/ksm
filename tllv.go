@@ -10,7 +10,7 @@ import (
 type TLLVBlock struct {
 	Tag         uint64
 	BlockLength uint32
-	ValueLength uint32
+	ValueLength uint32 //The number of bytes in the value field. This number may be any amount, including 0x0000
 	Value       []byte
 }
 
@@ -63,9 +63,10 @@ func (t *TLLVBlock) check() error {
 		return errors.New("tag not found")
 	}
 	if len(t.Value) == 0 {
-		//The number of bytes in the value field. This number may be any amount, including 0x0000
-		//TODO: using debug log
 		fmt.Printf("tag: %x :value not found\n", t.Tag)
+		fmt.Printf("tag.ValueLength: %x \n", t.ValueLength)
+
+		//return fmt.Errorf("tag: %x :value not found", t.Tag)
 	}
 	return nil
 }
@@ -116,12 +117,14 @@ func NewCkcContentKeyDurationBlock(LeaseDuration, RentalDuration uint32) *CkcCon
 	binary.BigEndian.PutUint32(rentalDurationOut, RentalDuration)
 
 	keyTypeOut := make([]byte, 4)
-	binary.BigEndian.PutUint32(keyTypeOut, contentKeyValidForLease)
+
+	//binary.BigEndian.PutUint32(keyTypeOut, contentKeyValidForLease)
+	binary.BigEndian.PutUint32(keyTypeOut, contentKeyPersisted)
 
 	value = append(value, LeaseDurationOut...)
 	value = append(value, rentalDurationOut...)
 	value = append(value, keyTypeOut...)
-	value = append(value, []byte{0x86, 0xd3, 0x4a, 0x3a}...) //Reserved
+	value = append(value, []byte{0x86, 0xd3, 0x4a, 0x3a}...) //Reserved; set to a fixed value of 0x86d34a3a.
 
 	tllv := NewTLLVBlock(tagContentKeyDuration, value)
 
@@ -129,7 +132,7 @@ func NewCkcContentKeyDurationBlock(LeaseDuration, RentalDuration uint32) *CkcCon
 		TLLVBlock:      tllv,
 		LeaseDuration:  LeaseDuration,
 		RentalDuration: RentalDuration,
-		KeyType:        contentKeyValidForLease,
+		KeyType:        contentKeyValidForLease, //TODO: KeyType does not use
 	}
 }
 
@@ -164,7 +167,13 @@ const (
 	tagContentKeyDuration = 0x47acf6a418cd091a
 	tagHdcpEnforcement    = 0x2e52f1530d8ddb4a
 
-	contentKeyValidForLease  = 0x1a4bde7e
-	contentKeyValidForRental = 0x3dfe45a0
-	contentKeyValidForBoth   = 0x27b59bde
+	contentKeyValidForLease  = 0x1a4bde7e //Content key valid for lease only
+	contentKeyValidForRental = 0x3dfe45a0 //Content key valid for rental only
+	contentKeyValidForBoth   = 0x27b59bde //Content key valid for both lease and rental
+)
+
+const (
+	//Offline
+	contentKeyPersisted            = 0x3df2d9fb //Content key can be persisted with unlimited validity duration
+	contentKeyPersistedWithlimited = 0x18f06048 //Content key can be persisted, and it’s validity duration is limited to the “Rental Duration” value
 )
