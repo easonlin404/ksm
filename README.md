@@ -23,3 +23,90 @@ Perform verification utility `verify_ckc` to test KSM implementation.
 ```
 testdata/verify_ckc -s testdata/FPS/spc1.bin -c testdata/FPS/ckc1.bin
 ```
+
+### Simple example
+
+See [example/basic.go](example/basic.go)
+
+```go
+package main
+
+import (
+	"encoding/base64"
+	"fmt"
+	"math/rand"
+	"net/http"
+
+	"github.com/easonlin404/ksm"
+	"github.com/easonlin404/ksm/d"
+	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+)
+
+func main() {
+
+	r := gin.Default()
+
+	type SpcMessage struct {
+		Spc     string `json:"spc" binding:"required"`
+		AssetId string `json:"assetId"`
+	}
+
+	r.POST("/fps/rest/getLicense", func(c *gin.Context) {
+		var spcMessage SpcMessage
+		if err := c.ShouldBindWith(&spcMessage, binding.JSON); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"err": err.Error(),
+			})
+			return
+		}
+
+		fmt.Printf("%v\n", spcMessage)
+
+		playback, err := base64.StdEncoding.DecodeString(spcMessage.Spc)
+		checkError(err)
+
+		k := &ksm.Ksm{
+			Pub:       pub,
+			Pri:       pri,
+			Rck:       RandomContentKey{},
+			DFunction: d.AppleD{},
+			Ask:       []byte{},
+		}
+		ckc, err2 := k.GenCKC(playback)
+		checkError(err2)
+
+		ckcBase64 := base64.StdEncoding.EncodeToString(ckc)
+		c.JSON(http.StatusOK, gin.H{
+			"ckc": ckcBase64,
+		})
+	})
+
+	r.Run(":8080")
+
+}
+
+func checkError(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
+type RandomContentKey struct {
+}
+
+func (RandomContentKey) FetchContentKey(assetId []byte) ([]byte, []byte, error) {
+	key := make([]byte, 16)
+	iv := make([]byte, 16)
+	rand.Read(key)
+	rand.Read(iv)
+	return key, iv, nil
+}
+
+func (RandomContentKey) FetchContentKeyDuration(assetId []byte) (*ksm.CkcContentKeyDurationBlock, error) {
+
+	LeaseDuration := rand.Uint32()  // The duration of the lease, if any, in seconds.
+	RentalDuration := rand.Uint32() // The duration of the rental, if any, in seconds.
+
+	return ksm.NewCkcContentKeyDurationBlock(LeaseDuration, RentalDuration), nil
+}
