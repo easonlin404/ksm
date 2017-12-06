@@ -7,6 +7,7 @@ import (
 	"fmt"
 )
 
+// TLLVBlock represents a TLLV block structure.
 type TLLVBlock struct {
 	Tag         uint64
 	BlockLength uint32
@@ -14,6 +15,7 @@ type TLLVBlock struct {
 	Value       []byte
 }
 
+// NewTLLVBlock creates a new TLLVBlock object using the specified tag and value.
 func NewTLLVBlock(tag uint64, value []byte) *TLLVBlock {
 	valueLen := uint32(len(value))
 	paddingSize := 32 - valueLen%16 // Extend to nearest 16 bytes + extra 16 bytes
@@ -27,6 +29,7 @@ func NewTLLVBlock(tag uint64, value []byte) *TLLVBlock {
 	}
 }
 
+// Serialize returns serialize byte array.
 func (t *TLLVBlock) Serialize() ([]byte, error) {
 	if err := t.check(); err != nil {
 		return nil, err
@@ -71,12 +74,14 @@ func (t *TLLVBlock) check() error {
 	return nil
 }
 
+// SKR1TLLVBlock represents a SKR1 TLLV block structure.
 type SKR1TLLVBlock struct {
 	TLLVBlock
 	IV      []byte
 	Payload []byte
 }
 
+// DecryptedSKR1Payload represents a decrypted SKR1 payload structure.
 type DecryptedSKR1Payload struct {
 	SK             []byte //Session key
 	HU             []byte
@@ -84,18 +89,22 @@ type DecryptedSKR1Payload struct {
 	IntegrityBytes []byte
 }
 
+// CkcR1 represents a ckcR1 structure.
 type CkcR1 struct {
 	R1 []byte
 }
 
+// CkcDataIv represents a ckc data iv structure.
 type CkcDataIv struct {
 	IV []byte
 }
 
+//CkcEncryptedPayload represents a ckc encrypted payload structure.
 type CkcEncryptedPayload struct {
 	Payload []byte
 }
 
+// CkcContentKeyDurationBlock represents a ckc content key duration block structure.
 type CkcContentKeyDurationBlock struct {
 	*TLLVBlock
 
@@ -107,6 +116,7 @@ type CkcContentKeyDurationBlock struct {
 
 }
 
+// NewCkcContentKeyDurationBlock creates a new a ckc content key duration block object using the specified lease duration and rental duration.
 func NewCkcContentKeyDurationBlock(LeaseDuration, RentalDuration uint32) *CkcContentKeyDurationBlock {
 	var value []byte
 
