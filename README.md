@@ -1,14 +1,14 @@
 # ksm
 
-FairPlay Streaming Key Security Module written in Go (Golang).
-
 [![Build Status](https://travis-ci.org/easonlin404/ksm.svg)](https://travis-ci.org/easonlin404/ksm)
 [![codecov](https://codecov.io/gh/easonlin404/ksm/branch/master/graph/badge.svg)](https://codecov.io/gh/easonlin404/ksm)
 [![Go Report Card](https://goreportcard.com/badge/github.com/easonlin404/ksm)](https://goreportcard.com/report/github.com/easonlin404/ksm)
 [![GoDoc](https://godoc.org/github.com/easonlin404/ksm?status.svg)](https://godoc.org/github.com/easonlin404/ksm)
 
 
-Apple FairPlay Streaming ([FPS](https://developer.apple.com/streaming/fps/)) securely delivers keys to Apple mobile devices, Apple TV, and Safari on OS X, which will enable playback of encrypted video content.
+Apple FairPlay Streaming ([FPS](https://developer.apple.com/streaming/fps/)) securely delivers keys to Apple mobile devices, Apple TV, and Safari on OS X, which will enable playback of encrypted video content. 
+
+This project is FairPlay Streaming Key Security Module written in Go (Golang).
 
 ## Usage
 
