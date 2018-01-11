@@ -8,6 +8,8 @@
 
 FairPlay Streaming Key Security Module written in Go (Golang).
 
+Apple FairPlay Streaming ([FPS](https://developer.apple.com/streaming/fps/)) securely delivers keys to Apple mobile devices, Apple TV, and Safari on OS X, which will enable playback of encrypted video content.
+
 ## Usage
 
 ### Start using it
