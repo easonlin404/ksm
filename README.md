@@ -28,7 +28,7 @@ testdata/verify_ckc -s testdata/FPS/spc1.bin -c testdata/FPS/ckc1.bin
 
 ### Simple example
 
-See [example/basic.go](example/basic.go). You have to implement your contentKey and D dunc if you want to use Apple FairPlay DRM.
+See [example/basic.go](example/basic.go). You have to implement your contentKey and D func if you want to use Apple FairPlay DRM.
 
 ```go
 package main
