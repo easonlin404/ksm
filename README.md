@@ -28,7 +28,7 @@ testdata/verify_ckc -s testdata/FPS/spc1.bin -c testdata/FPS/ckc1.bin
 
 ### Simple example
 
-See [example/basic.go](example/basic.go)
+See [example/basic.go](example/basic.go). You have to implement your contentKey and D dunc if you want to use Apple FairPlay DRM.
 
 ```go
 package main
@@ -71,8 +71,8 @@ func main() {
 		k := &ksm.Ksm{
 			Pub:       pub,
 			Pri:       pri,
-			Rck:       RandomContentKey{},
-			DFunction: d.AppleD{},
+			Rck:       RandomContentKey{}, // Use random content key for testing
+			DFunction: d.AppleD{},         // Use D function provided by Apple Inc.
 			Ask:       []byte{},
 		}
 		ckc, err2 := k.GenCKC(playback)
@@ -94,9 +94,11 @@ func checkError(err error) {
 	}
 }
 
+// Random content key
 type RandomContentKey struct {
 }
 
+// Implement FetchContentKey func
 func (RandomContentKey) FetchContentKey(assetId []byte) ([]byte, []byte, error) {
 	key := make([]byte, 16)
 	iv := make([]byte, 16)
@@ -105,6 +107,7 @@ func (RandomContentKey) FetchContentKey(assetId []byte) ([]byte, []byte, error) 
 	return key, iv, nil
 }
 
+// Implement FetchContentKeyDuration func
 func (RandomContentKey) FetchContentKeyDuration(assetId []byte) (*ksm.CkcContentKeyDurationBlock, error) {
 
 	LeaseDuration := rand.Uint32()  // The duration of the lease, if any, in seconds.
@@ -112,3 +115,6 @@ func (RandomContentKey) FetchContentKeyDuration(assetId []byte) (*ksm.CkcContent
 
 	return ksm.NewCkcContentKeyDurationBlock(LeaseDuration, RentalDuration), nil
 }
+```
+
+
