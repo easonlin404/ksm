@@ -152,8 +152,8 @@ const (
 	tagAntiReplaySeed            = 0x89c90f12204106b2
 	tagR2                        = 0x71b5595ac1521133
 	tagReturnRequest             = 0x19f9d4e5ab7609cb
-	tagAssetId                   = 0x1bf7f53f5d5d5a1f
-	tagTransactionId             = 0x47aa7ad3440577de
+	tagAssetID                   = 0x1bf7f53f5d5d5a1f
+	tagTransactionID             = 0x47aa7ad3440577de
 	tagProtocolVersionsSupported = 0x67b8fb79ecce1a13
 	tagProtocolVersionUsed       = 0x5d81bcbcc7f61703
 	tagTreamingIndicator         = 0xabb0256a31843974
