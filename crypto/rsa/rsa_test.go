@@ -1,8 +1,9 @@
 package rsa
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var privateKey = []byte(`-----BEGIN RSA PRIVATE KEY-----
