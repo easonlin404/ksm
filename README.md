@@ -117,7 +117,7 @@ func (RandomContentKey) FetchContentKeyDuration(assetId []byte) (*ksm.CkcContent
 }
 ```
 
-
+## FAQ
 ### How to send sample SPC data?
 
 Our [example/basic.go](https://github.com/easonlin404/ksm/blob/master/example/basic.go) router has to accepted SPC parameter that is base64 encoding. And [testdata/spc1.bin](https://github.com/easonlin404/ksm/blob/master/testdata/FPS/spc1.bin) is binary file, so you have to encode to base64  string.
@@ -143,4 +143,8 @@ Date: Thu, 08 Mar 2018 05:51:02 GMT
 ```
 
 
+### How to verifying Key Security Module (KSM) Implementation?
+[https://developer.apple.com/library/archive/technotes/tn2454/_index.html#//apple_ref/doc/uid/DTS40017630-CH1-VERIFYING_KEY_SECURITY_MODULE__KSM__IMPLEMENTATION](https://developer.apple.com/library/archive/technotes/tn2454/_index.html#//apple_ref/doc/uid/DTS40017630-CH1-VERIFYING_KEY_SECURITY_MODULE__KSM__IMPLEMENTATION)
 
+### How to Debugging FairPlay Streaming?
+[https://developer.apple.com/library/archive/technotes/tn2454/_index.html](https://developer.apple.com/library/archive/technotes/tn2454/_index.html)
