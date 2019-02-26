@@ -10,11 +10,8 @@ go:
   - 1.12.x
   - master
 
-matrix:
-  fast_finish: true
-  include:
-  - go: 1.11.x
-    env: GO111MODULE=on
+before_install:
+  - go get -t -v ./...
 
 script:
   - go test -race -coverprofile=coverage.txt -covermode=atomic
