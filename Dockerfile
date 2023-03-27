@@ -1,4 +1,4 @@
-FROM golang
+FROM golang:1.15
 
 WORKDIR /go/src/github.com/easonlin404/ksm
 
